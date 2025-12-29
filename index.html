@@ -5,31 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RetroBrew AI - Professional Pour-over Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Playfair Display for headings, Lora for body text to achieve the retro aesthetic -->
+    <!-- Google Fonts: Quicksand (Headings) and Nunito (Body) for a rounded, bold look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              serif: ['"Playfair Display"', 'serif'],
-              body: ['"Lora"', 'serif'],
+              serif: ['"Quicksand"', 'sans-serif'], // Replacing Serif semantic with Quicksand for headings
+              body: ['"Nunito"', 'sans-serif'],
             },
             colors: {
               retro: {
-                bg: '#FDFBF7', // Cream paper
-                dark: '#1A1818', // Soft Black
-                accent: '#D97706', // Amber/Orange
-                secondary: '#3F6212', // Olive Green
-                mute: '#E5E7EB',
+                bg: '#0f172a', // Slate 900 (Main Background)
+                surface: '#1e293b', // Slate 800 (Card Background)
+                dark: '#f1f5f9', // Slate 100 (Primary Text - flipped from original meaning)
+                mute: '#94a3b8', // Slate 400 (Secondary Text)
+                accent: '#fbbf24', // Amber 400 (Vibrant Accent)
+                secondary: '#34d399', // Emerald 400
+                border: '#334155', // Slate 700
               }
             },
             boxShadow: {
-              'hard': '4px 4px 0px 0px #1A1818',
-              'hard-sm': '2px 2px 0px 0px #1A1818',
-              'hard-lg': '8px 8px 0px 0px #1A1818',
+              'glow': '0 0 15px -3px rgba(251, 191, 36, 0.3)',
+              'soft': '0 10px 15px -3px rgba(0, 0, 0, 0.5)',
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
             }
           }
         }
@@ -37,8 +48,22 @@
     </script>
     <style>
       body {
-        background-color: #FDFBF7;
-        color: #1A1818;
+        background-color: #0f172a;
+        color: #f1f5f9;
+      }
+      /* Custom Scrollbar for dark theme */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0f172a;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #475569;
       }
     </style>
   <script type="importmap">

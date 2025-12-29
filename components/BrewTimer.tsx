@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CoffeeRecipe } from '../types';
-import { RetroButton } from './RetroUI';
+import { RetroButton, RetroCard } from './RetroUI';
 
 interface BrewTimerProps {
   recipe: CoffeeRecipe;
@@ -101,101 +101,104 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
   };
 
   return (
-    <div className="w-full max-w-lg mx-auto pb-20 animate-fade-in">
+    <div className="w-full max-w-lg mx-auto pb-20 animate-fade-in space-y-6">
         
       {/* 1. Timer & Action Card */}
-      <div className="bg-[#1A1818] text-[#FDFBF7] p-6 shadow-hard mb-6 relative overflow-hidden">
-        {/* Dotted texture background effect */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '10px 10px' }}></div>
+      <div className="bg-gradient-to-b from-retro-surface to-[#161e2e] text-white p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border border-retro-border">
+        {/* Glow effect */}
+        {isActive && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-retro-accent/20 blur-[50px] rounded-full"></div>}
         
         <div className="relative z-10 flex flex-col items-center">
-            <div className="text-xs font-serif tracking-[0.2em] text-gray-400 mb-2">沖煮計時 (TIMER)</div>
-            <div className="font-serif text-7xl font-bold tabular-nums tracking-tight mb-6">
+            <div className="text-xs font-bold tracking-[0.2em] text-retro-mute mb-2 uppercase">Brewing Timer</div>
+            <div className="font-serif text-8xl font-bold tabular-nums tracking-tighter mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
                 {formatTime(seconds)}
             </div>
 
             {/* Main Action Button */}
-            {!isActive && !isFinished && seconds === 0 && (
-                 <RetroButton onClick={toggleTimer} className="w-full bg-retro-accent border-white text-white mb-6">開始沖煮 (START)</RetroButton>
-            )}
-             {isActive && (
-                 <RetroButton onClick={toggleTimer} className="w-full bg-white border-white text-retro-dark mb-6">暫停 (PAUSE)</RetroButton>
-            )}
-             {!isActive && seconds > 0 && !isFinished && (
-                 <RetroButton onClick={toggleTimer} className="w-full bg-retro-accent border-white text-white mb-6">繼續 (RESUME)</RetroButton>
-             )}
-             {isFinished && (
-                  <RetroButton onClick={resetTimerState} className="w-full bg-white border-white text-retro-dark mb-6">再次沖煮 (BREW AGAIN)</RetroButton>
-             )}
+            <div className="w-full px-4 mb-6">
+                {!isActive && !isFinished && seconds === 0 && (
+                    <RetroButton onClick={toggleTimer} className="w-full shadow-glow py-5 text-xl">開始沖煮 (START)</RetroButton>
+                )}
+                {isActive && (
+                    <RetroButton onClick={toggleTimer} variant="secondary" className="w-full py-5 text-xl">暫停 (PAUSE)</RetroButton>
+                )}
+                {!isActive && seconds > 0 && !isFinished && (
+                    <RetroButton onClick={toggleTimer} className="w-full shadow-glow py-5 text-xl">繼續 (RESUME)</RetroButton>
+                )}
+                {isFinished && (
+                    <RetroButton onClick={resetTimerState} variant="outline" className="w-full py-5 text-xl text-white border-white">重置 (RESET)</RetroButton>
+                )}
+            </div>
 
             {!isFinished && (
-                <>
-                    <div className="w-full border-t border-gray-700 my-4"></div>
+                <div className="w-full bg-[#0f172a]/50 p-6 rounded-3xl border border-retro-border/50 backdrop-blur-md">
                     <div className="w-full flex justify-between items-end">
                         <div>
-                            <div className="text-xs font-serif tracking-[0.2em] text-gray-400 mb-1">當前步驟 (ACTION)</div>
-                            <div className="font-serif text-3xl font-bold">{currentStep.action}</div>
+                            <div className="text-xs font-bold tracking-[0.2em] text-retro-secondary mb-1">CURRENT STEP</div>
+                            <div className="font-serif text-2xl font-bold text-white">{currentStep.action}</div>
                         </div>
-                        <div className="font-serif text-5xl font-bold text-gray-500 tabular-nums">
+                        <div className="font-serif text-4xl font-bold text-retro-accent tabular-nums">
                             {isActive ? stepRemaining : currentStep.durationSec}s
                         </div>
                     </div>
-                </>
+                </div>
             )}
              {isFinished && (
                 <div className="text-center py-4">
-                    <p className="font-serif text-2xl text-retro-accent">請享用您的美味咖啡。</p>
+                    <p className="font-serif text-2xl text-retro-accent animate-pulse">Enjoy your coffee.</p>
                 </div>
             )}
         </div>
       </div>
 
       {/* 2. Parameter Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-8">
-        <div className="bg-[#FCE7F3] border-2 border-retro-dark shadow-hard-sm p-3 flex flex-col items-center justify-center h-24">
-            <span className="text-xs font-bold text-retro-dark/60 uppercase tracking-widest mb-1">粉重 Dose</span>
-            <span className="font-serif text-2xl font-bold text-retro-dark">{recipe.coffeeWeight}g</span>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-pink-900/20 border border-pink-500/30 rounded-3xl p-4 flex flex-col items-center justify-center h-28">
+            <span className="text-[10px] font-bold text-pink-300 uppercase tracking-widest mb-1">Dose</span>
+            <span className="font-serif text-3xl font-bold text-pink-100">{recipe.coffeeWeight}<span className="text-lg ml-1">g</span></span>
         </div>
-        <div className="bg-[#CCFBF1] border-2 border-retro-dark shadow-hard-sm p-3 flex flex-col items-center justify-center h-24">
-            <span className="text-xs font-bold text-retro-dark/60 uppercase tracking-widest mb-1">水溫 Temp</span>
-            <span className="font-serif text-2xl font-bold text-retro-dark">{recipe.temperature}°C</span>
+        <div className="bg-cyan-900/20 border border-cyan-500/30 rounded-3xl p-4 flex flex-col items-center justify-center h-28">
+            <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest mb-1">Temp</span>
+            <span className="font-serif text-3xl font-bold text-cyan-100">{recipe.temperature}<span className="text-lg ml-1">°C</span></span>
         </div>
-        <div className="bg-[#FEF3C7] border-2 border-retro-dark shadow-hard-sm p-3 flex flex-col items-center justify-center h-auto min-h-[6rem] text-center">
-             <span className="text-xs font-bold text-retro-dark/60 uppercase tracking-widest mb-1">研磨度 Grind</span>
-             <span className="font-body text-sm font-bold text-retro-dark leading-tight px-1">{recipe.grindSize}</span>
+        <div className="col-span-1 bg-amber-900/20 border border-amber-500/30 rounded-3xl p-4 flex flex-col items-center justify-center min-h-[7rem] text-center">
+             <span className="text-[10px] font-bold text-amber-300 uppercase tracking-widest mb-1">Grind</span>
+             <span className="font-body text-xs font-bold text-amber-100 leading-tight px-1 line-clamp-3">{recipe.grindSize}</span>
         </div>
-         <div className="bg-[#FFEDD5] border-2 border-retro-dark shadow-hard-sm p-3 flex flex-col items-center justify-center h-24">
-             <span className="text-xs font-bold text-retro-dark/60 uppercase tracking-widest mb-1">總時 Time</span>
-             <span className="font-serif text-2xl font-bold text-retro-dark">{formatTime(totalTime)}</span>
+         <div className="col-span-1 bg-emerald-900/20 border border-emerald-500/30 rounded-3xl p-4 flex flex-col items-center justify-center h-28">
+             <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest mb-1">Total Time</span>
+             <span className="font-serif text-3xl font-bold text-emerald-100">{formatTime(totalTime)}</span>
         </div>
       </div>
 
       {/* 3. Brewing Process List */}
-      <div className="mb-8">
+      <RetroCard>
         <div className="flex items-center gap-4 mb-6">
-             <div className="h-[2px] bg-retro-dark flex-grow"></div>
-             <h3 className="font-serif text-xl font-bold uppercase tracking-widest">沖煮流程</h3>
-             <div className="h-[2px] bg-retro-dark flex-grow"></div>
+             <div className="h-2 w-2 rounded-full bg-retro-accent"></div>
+             <h3 className="font-serif text-xl font-bold text-white">沖煮流程</h3>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* Timeline line */}
+            <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-retro-border z-0"></div>
+
             {recipe.steps.map((step, idx) => {
                 const isCurrent = idx === currentStepIndex && !isFinished;
                 const isPast = idx < currentStepIndex || isFinished;
                 return (
-                    <div key={idx} className={`flex gap-4 transition-opacity ${isPast ? 'opacity-50' : 'opacity-100'}`}>
-                        <div className="flex-shrink-0">
-                            <div className={`w-10 h-10 flex items-center justify-center border-2 border-retro-dark font-serif font-bold text-lg ${isCurrent ? 'bg-retro-accent text-white' : 'bg-white text-retro-dark'}`}>
+                    <div key={idx} className={`relative z-10 flex gap-5 transition-opacity duration-500 ${isPast ? 'opacity-40' : 'opacity-100'}`}>
+                        <div className="flex-shrink-0 pt-1">
+                            <div className={`w-10 h-10 flex items-center justify-center rounded-full border-4 text-sm font-bold shadow-lg transition-all ${isCurrent ? 'bg-retro-accent border-[#0f172a] text-[#0f172a] scale-110 shadow-glow' : 'bg-[#0f172a] border-retro-border text-retro-mute'}`}>
                                 {idx + 1}
                             </div>
                         </div>
-                        <div className="flex-grow pt-1 pb-4 border-b border-gray-200">
+                        <div className="flex-grow bg-[#0f172a]/50 p-4 rounded-2xl border border-retro-border/50">
                              <div className="flex justify-between items-baseline mb-2">
-                                <h4 className="font-serif text-xl font-bold">{step.action}</h4>
-                                <span className="font-mono font-bold text-sm bg-gray-100 px-2 py-1 rounded">{step.waterAmount}ML</span>
+                                <h4 className={`font-serif text-lg font-bold ${isCurrent ? 'text-retro-accent' : 'text-white'}`}>{step.action}</h4>
+                                <span className="font-mono font-bold text-xs bg-retro-border/50 text-retro-dark px-2 py-1 rounded-md">{step.waterAmount} ML</span>
                              </div>
-                             <p className="font-body text-gray-700 leading-relaxed text-sm">{step.description}</p>
-                             <div className="mt-2 text-xs font-bold text-gray-400 font-serif tracking-widest">
+                             <p className="font-body text-retro-mute leading-relaxed text-sm mb-2">{step.description}</p>
+                             <div className="text-[10px] font-bold text-gray-500 tracking-widest uppercase">
                                 {formatTime(step.startTimeSec)} - {formatTime(step.startTimeSec + step.durationSec)}
                              </div>
                         </div>
@@ -203,21 +206,21 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
                 );
             })}
         </div>
-      </div>
+      </RetroCard>
 
       {/* 4. Barista Notes */}
-      <div className="border-t-4 border-retro-dark pt-6 mt-8">
-          <div className="flex items-center gap-2 mb-3">
-              <span className="bg-black text-white px-2 py-1 text-xs font-bold tracking-widest uppercase">職人筆記 (Barista Notes)</span>
+      <div className="py-2">
+          <div className="flex items-center gap-2 mb-3 justify-center">
+              <span className="bg-retro-secondary/20 text-retro-secondary border border-retro-secondary/30 px-3 py-1 text-xs font-bold rounded-full tracking-widest uppercase">Barista Notes</span>
           </div>
-          <blockquote className="font-serif italic text-lg text-gray-800 leading-relaxed border-l-4 border-retro-accent pl-4 py-1">
+          <blockquote className="font-serif text-center text-lg text-gray-300 leading-relaxed italic px-4">
               "{recipe.baristaNotes || recipe.tastingNotes.join(', ')}"
           </blockquote>
       </div>
 
-      <div className="mt-12 text-center">
-        <button onClick={onReset} className="font-body text-sm underline text-gray-500 hover:text-black">
-            調整參數
+      <div className="mt-8 text-center pb-8">
+        <button onClick={onReset} className="font-body text-sm text-retro-mute hover:text-white transition-colors underline decoration-retro-accent/50 underline-offset-4">
+            ← 調整參數
         </button>
       </div>
 
