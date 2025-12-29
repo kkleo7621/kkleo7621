@@ -1,4 +1,4 @@
-import { BrewerType, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition } from "./types";
+import { BrewerType, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition, RecipeStructure } from "./types";
 
 export const BREWER_OPTIONS = Object.values(BrewerType);
 export const ROAST_OPTIONS = Object.values(RoastLevel);
@@ -6,6 +6,7 @@ export const PROCESS_OPTIONS = Object.values(ProcessMethod);
 export const FLAVOR_OPTIONS = Object.values(FlavorPreference);
 export const NOTE_OPTIONS = Object.values(NotePreference);
 export const WEATHER_OPTIONS = Object.values(WeatherCondition);
+export const STRUCTURE_OPTIONS = Object.values(RecipeStructure);
 
 export const MOCK_RECIPE = {
   coffeeWeight: 20,

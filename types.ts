@@ -43,17 +43,32 @@ export enum WeatherCondition {
   NORMAL = '舒適恆溫',
 }
 
+export enum CalculationMode {
+  BY_VOLUME = '鎖定液量 (Target Volume)',
+  BY_DOSE = '鎖定粉重 (Fixed Dose)',
+}
+
+export enum RecipeStructure {
+  STANDARD = '經典平衡 (1:15 基準)',
+  RICH = '極致濃郁 (1:10~1:13)',
+  TEA_LIKE = '茶感清爽 (1:17~1:19)',
+  BYPASS = 'Bypass 變奏 (高濃度萃取+補水)',
+}
+
 export interface CoffeeParams {
   origin: string;
   process: string;
   roast: RoastLevel;
-  targetVolume: number;
+  targetVolume: number; // Used if mode is BY_VOLUME
+  userCoffeeWeight: number; // Used if mode is BY_DOSE
+  calculationMode: CalculationMode;
   brewer: BrewerType;
   brewerCustom: string;
   flavorPreference: FlavorPreference;
   notePreference: NotePreference;
   roastDate: string; // YYYY-MM-DD
   weather: WeatherCondition;
+  structure: RecipeStructure;
 }
 
 export interface RecipeStep {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RetroButton, RetroInput, RetroSelect, RetroCard, RetroSlider } from './components/RetroUI';
-import { BREWER_OPTIONS, PROCESS_OPTIONS, ROAST_OPTIONS, FLAVOR_OPTIONS, NOTE_OPTIONS, WEATHER_OPTIONS } from './constants';
-import { BrewerType, CoffeeParams, CoffeeRecipe, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition } from './types';
+import { BREWER_OPTIONS, PROCESS_OPTIONS, ROAST_OPTIONS, FLAVOR_OPTIONS, NOTE_OPTIONS, WEATHER_OPTIONS, STRUCTURE_OPTIONS } from './constants';
+import { BrewerType, CoffeeParams, CoffeeRecipe, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition, CalculationMode, RecipeStructure } from './types';
 import { generateCoffeeRecipe } from './services/geminiService';
 import BrewTimer from './components/BrewTimer';
 
@@ -25,10 +25,10 @@ const ORIGIN_OPTIONS = [
 
 const LOADING_MESSAGES = [
   "解析豆種與養豆天數...",
-  "偵測天氣濕度對流速影響...",
-  "計算最佳萃取粉水比...",
+  "計算極致粉水比與濃度...",
+  "規劃 Bypass 稀釋比例...",
   "調整悶蒸時間與擾動...",
-  "規劃職人分段注水曲線..."
+  "建構職人沖煮曲線..."
 ];
 
 const App: React.FC = () => {
@@ -38,12 +38,15 @@ const App: React.FC = () => {
     process: ProcessMethod.WASHED,
     roast: RoastLevel.LIGHT,
     targetVolume: 300,
+    userCoffeeWeight: 20, // Default dose
+    calculationMode: CalculationMode.BY_DOSE, 
+    structure: RecipeStructure.STANDARD, // Default structure
     brewer: BrewerType.V60,
     brewerCustom: '',
     flavorPreference: FlavorPreference.BALANCED,
     notePreference: NotePreference.BALANCED,
     roastDate: new Date().toISOString().split('T')[0], // Default to today
-    weather: WeatherCondition.RAINY_HUMID, // Default for Northern Taiwan often
+    weather: WeatherCondition.RAINY_HUMID, 
   });
 
   const [recipe, setRecipe] = useState<CoffeeRecipe | null>(null);
@@ -84,6 +87,13 @@ const App: React.FC = () => {
     setParams(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleModeChange = (mode: CalculationMode) => {
+    setParams(prev => ({
+      ...prev,
+      calculationMode: mode
     }));
   };
 
@@ -154,7 +164,22 @@ const App: React.FC = () => {
                     />
                 </div>
 
-                {/* New: Environment Section */}
+                {/* Structure / Ratio Section (New) */}
+                <div className="mt-4 pt-4 border-t-2 border-retro-dark/10">
+                     <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest mb-3">架構與比例 (Structure)</h3>
+                     <RetroSelect 
+                        label="沖煮架構偏好" 
+                        name="structure" 
+                        value={params.structure} 
+                        onChange={handleInputChange} 
+                        options={STRUCTURE_OPTIONS}
+                    />
+                    <p className="text-xs text-gray-500 font-serif italic mb-4">
+                        * 選擇 Bypass 將採用高濃度萃取後加水，可大幅降低雜味。
+                    </p>
+                </div>
+
+                {/* Environment Section */}
                 <div className="mt-4 pt-4 border-t-2 border-retro-dark/10">
                     <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest mb-3">環境與狀態 (Environment)</h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -194,17 +219,50 @@ const App: React.FC = () => {
                     />
                 </div>
 
+                {/* Volume/Dose Toggle Section */}
                 <div className="mb-6 mt-4 pt-4 border-t-2 border-retro-dark/10">
-                     <RetroSlider 
-                        label="預期沖煮量"
-                        name="targetVolume"
-                        min="200"
-                        max="600"
-                        step="10"
-                        value={params.targetVolume}
-                        onChange={handleInputChange}
-                        displayValue={`${params.targetVolume} cc`}
-                     />
+                     <h3 className="text-xs font-bold text-retro-accent uppercase tracking-widest mb-3">份量設定 (Ratio Base)</h3>
+                     
+                     <div className="flex gap-2 mb-4">
+                        <button 
+                            type="button"
+                            onClick={() => handleModeChange(CalculationMode.BY_DOSE)}
+                            className={`flex-1 py-2 px-3 text-sm font-bold border-2 border-retro-dark transition-colors ${params.calculationMode === CalculationMode.BY_DOSE ? 'bg-retro-dark text-white' : 'bg-white text-retro-dark hover:bg-gray-100'}`}
+                        >
+                            鎖定粉重 (Fixed Dose)
+                        </button>
+                        <button 
+                            type="button"
+                            onClick={() => handleModeChange(CalculationMode.BY_VOLUME)}
+                            className={`flex-1 py-2 px-3 text-sm font-bold border-2 border-retro-dark transition-colors ${params.calculationMode === CalculationMode.BY_VOLUME ? 'bg-retro-dark text-white' : 'bg-white text-retro-dark hover:bg-gray-100'}`}
+                        >
+                            鎖定液量 (Target Vol)
+                        </button>
+                     </div>
+
+                     {params.calculationMode === CalculationMode.BY_DOSE ? (
+                         <RetroSlider 
+                            label="使用咖啡粉量"
+                            name="userCoffeeWeight"
+                            min="10"
+                            max="40"
+                            step="0.5"
+                            value={params.userCoffeeWeight}
+                            onChange={handleInputChange}
+                            displayValue={`${params.userCoffeeWeight} g`}
+                        />
+                     ) : (
+                        <RetroSlider 
+                            label="預期沖煮液量"
+                            name="targetVolume"
+                            min="200"
+                            max="600"
+                            step="10"
+                            value={params.targetVolume}
+                            onChange={handleInputChange}
+                            displayValue={`${params.targetVolume} cc`}
+                        />
+                     )}
                 </div>
 
                 <div className="mb-8">
