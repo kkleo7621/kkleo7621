@@ -66,16 +66,6 @@ export enum ChampionMethod {
   MARTIN_WOLFL = 'Martin Wölfl (Melodrip 零擾動)',
 }
 
-export enum WaterStrategy {
-  DEFAULT = '一般過濾水 / 未知',
-  SCA_STANDARD = 'SCA 標準 (TDS 150 / GH 68 / KH 40)',
-  NORDIC_SOFT = '北歐極軟水 (TDS 20-40 / Martin, Peng)',
-  MAGNESIUM_RICH = '高鎂強調 (TDS 60-90 / Chad Wang)',
-  CALCIUM_RICH = '高鈣/一般硬水 (TDS 100+ / 甜感主導)',
-  PURE_WATER = 'RO 純水 (TDS ~0 / Tetsu 策略)',
-  APAX_LAB = 'APAX Lab 模組化 (Tonik/Jamm/Lylac)',
-}
-
 export interface CoffeeParams {
   origin: string;
   process: string;
@@ -90,8 +80,7 @@ export interface CoffeeParams {
   roastDate: string;
   weather: WeatherCondition;
   structure: RecipeStructure;
-  championMethod: ChampionMethod;
-  waterStrategy: WaterStrategy; // New field
+  championMethod: ChampionMethod; // New field
 }
 
 export interface RecipeStep {
@@ -111,7 +100,7 @@ export interface CoffeeRecipe {
   grindSize: string;
   tastingNotes: string[];
   flavorSummary: string;
-  variableAnalysis: string;
+  variableAnalysis: string; // New: AI analysis of all input variables
   baristaNotes: string;
   championInspiration?: string; 
   steps: RecipeStep[];

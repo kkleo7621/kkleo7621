@@ -1,100 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CoffeeRecipe } from '../types';
 import { RetroButton, RetroCard } from './RetroUI';
-// @ts-ignore
+// @ts-ignore - html2canvas is imported via ESM in index.html
 import html2canvas from 'html2canvas';
 
 interface BrewTimerProps {
   recipe: CoffeeRecipe;
   onReset: () => void;
 }
-
-// Extract SharableCard outside to avoid re-declaration on every render
-const SharableCard = ({ id, recipe }: { id?: string; recipe: CoffeeRecipe | null }) => {
-    const steps = recipe?.steps || [];
-    
-    // Friendly Text Format (Xm Ys) for steps - Helper internal to this component
-    const formatFriendlyTime = (totalSeconds: number) => {
-        const m = Math.floor(totalSeconds / 60);
-        const s = totalSeconds % 60;
-        if (m > 0) {
-            return `${m}m ${s.toString().padStart(2, '0')}s`;
-        }
-        return `${s}s`;
-    };
-
-    return (
-    <div id={id} className="bg-white p-8 pb-10 rounded-[0px] text-black w-[450px] mx-auto overflow-hidden shadow-none border border-gray-100" style={{ background: '#ffffff', color: '#000000', fontFamily: 'sans-serif' }}>
-        <header className="border-b-[3px] border-black pb-6 mb-8 text-center">
-            <h2 className="text-4xl font-black uppercase tracking-tighter mb-2" style={{ margin: 0 }}>BARISTA'S LOG</h2>
-            <div className="flex justify-center items-center gap-3">
-                 <div className="h-[1px] w-8 bg-gray-400"></div>
-                 <div className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-500">AI MASTER BREWING ENGINE</div>
-                 <div className="h-[1px] w-8 bg-gray-400"></div>
-            </div>
-        </header>
-
-        <div className="space-y-8">
-            <div className="grid grid-cols-2 gap-8">
-                <div>
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">Dose / Water</span>
-                    <p className="font-black text-3xl tracking-tight">{recipe?.coffeeWeight || 0}g <span className="text-gray-300 text-lg">/</span> {recipe?.totalWater || 0}ml</p>
-                </div>
-                <div className="text-right">
-                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">Temp / Ratio</span>
-                    <p className="font-black text-3xl tracking-tight">{recipe?.temperature || 90}°C <span className="text-gray-300 text-lg">/</span> {recipe?.waterRatio || '1:15'}</p>
-                </div>
-            </div>
-
-            <div className="bg-gray-50 border-l-4 border-black p-5">
-                <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest block mb-2">Grind Setting (關鍵研磨設定)</span>
-                <p className="font-bold text-lg leading-tight text-gray-900">{recipe?.grindSize || 'N/A'}</p>
-            </div>
-
-            <div>
-                <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-3">Master Analysis (變因與邏輯總結)</span>
-                <p className="text-xs leading-relaxed font-medium text-gray-600 text-justify bg-white border border-gray-200 p-4 rounded-xl">
-                    {recipe?.variableAnalysis || 'N/A'}
-                </p>
-            </div>
-
-            <div>
-                 <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-4">Brewing Sequence</span>
-                 <div className="relative">
-                    <div className="absolute left-[13px] top-2 bottom-2 w-[2px] bg-gray-100"></div>
-                    <div className="space-y-4">
-                        {steps.map((s, i) => {
-                            const endTime = s.startTimeSec + s.durationSec;
-                            return (
-                                <div key={i} className="flex items-start gap-4 relative z-10">
-                                    <div className="bg-black text-white w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5 shadow-sm">{i+1}</div>
-                                    <div className="flex-1 pb-4 border-b border-gray-100 last:border-0">
-                                        <div className="flex justify-between items-baseline mb-1">
-                                            <span className="font-bold text-sm text-black">{s.action}</span>
-                                            <div className="text-right flex items-center gap-2">
-                                                <span className="text-[10px] font-bold text-gray-400 font-mono tracking-tight bg-gray-100 px-1.5 rounded">
-                                                    {formatFriendlyTime(s.startTimeSec)} - {formatFriendlyTime(endTime)}
-                                                </span>
-                                                <span className="font-bold text-xs text-black tabular-nums">→ {s.waterAmount}ml</span>
-                                            </div>
-                                        </div>
-                                        <p className="text-[10px] text-gray-500 leading-snug">{s.description}</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                 </div>
-            </div>
-
-            <div className="bg-black text-white p-6 rounded-2xl mt-4">
-                 <span className="text-[9px] font-black uppercase text-[#FBBF24] tracking-[0.2em] block mb-2">Champion Inspiration</span>
-                 <p className="font-medium text-xs leading-relaxed opacity-90">{recipe?.championInspiration || 'N/A'}</p>
-            </div>
-        </div>
-    </div>
-    );
-};
 
 const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
   const [isActive, setIsActive] = useState(false);
@@ -182,7 +95,7 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  // Friendly Text Format (Xm Ys) for steps - used in the main UI
+  // Friendly Text Format (Xm Ys) for steps
   const formatFriendlyTime = (totalSeconds: number) => {
     const m = Math.floor(totalSeconds / 60);
     const s = totalSeconds % 60;
@@ -211,7 +124,7 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
             logging: false,
             windowWidth: cardElement.scrollWidth,
             windowHeight: cardElement.scrollHeight,
-            onclone: (clonedDoc: Document) => {
+            onclone: (clonedDoc) => {
               const el = clonedDoc.getElementById('share-container');
               if (el) {
                 el.style.transform = 'none';
@@ -226,7 +139,7 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
             }
         });
 
-        canvas.toBlob(async (blob: Blob | null) => {
+        canvas.toBlob(async (blob) => {
             if (!blob) {
                 setIsSaving(false);
                 return;
@@ -265,13 +178,86 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
     }
   };
 
+  // --- INTERNAL COMPONENT: THE CAPTURE TARGET ---
+  const SharableCard = ({ id }: { id?: string }) => (
+    <div id={id} className="bg-white p-8 pb-10 rounded-[0px] text-black w-[450px] mx-auto overflow-hidden shadow-none border border-gray-100" style={{ background: '#ffffff', color: '#000000', fontFamily: 'sans-serif' }}>
+        <header className="border-b-[3px] border-black pb-6 mb-8 text-center">
+            <h2 className="text-4xl font-black uppercase tracking-tighter mb-2" style={{ margin: 0 }}>BARISTA'S LOG</h2>
+            <div className="flex justify-center items-center gap-3">
+                 <div className="h-[1px] w-8 bg-gray-400"></div>
+                 <div className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-500">AI MASTER BREWING ENGINE</div>
+                 <div className="h-[1px] w-8 bg-gray-400"></div>
+            </div>
+        </header>
+
+        <div className="space-y-8">
+            <div className="grid grid-cols-2 gap-8">
+                <div>
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">Dose / Water</span>
+                    <p className="font-black text-3xl tracking-tight">{recipe?.coffeeWeight || 0}g <span className="text-gray-300 text-lg">/</span> {recipe?.totalWater || 0}ml</p>
+                </div>
+                <div className="text-right">
+                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-1">Temp / Ratio</span>
+                    <p className="font-black text-3xl tracking-tight">{recipe?.temperature || 90}°C <span className="text-gray-300 text-lg">/</span> {recipe?.waterRatio || '1:15'}</p>
+                </div>
+            </div>
+
+            <div className="bg-gray-50 border-l-4 border-black p-5">
+                <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest block mb-2">Grind Setting (關鍵研磨設定)</span>
+                <p className="font-bold text-lg leading-tight text-gray-900">{recipe?.grindSize || 'N/A'}</p>
+            </div>
+
+            <div>
+                <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-3">Master Analysis (變因與邏輯總結)</span>
+                <p className="text-xs leading-relaxed font-medium text-gray-600 text-justify bg-white border border-gray-200 p-4 rounded-xl">
+                    {recipe?.variableAnalysis || 'N/A'}
+                </p>
+            </div>
+
+            <div>
+                 <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest block mb-4">Brewing Sequence</span>
+                 <div className="relative">
+                    <div className="absolute left-[13px] top-2 bottom-2 w-[2px] bg-gray-100"></div>
+                    <div className="space-y-4">
+                        {steps.map((s, i) => {
+                            const endTime = s.startTimeSec + s.durationSec;
+                            return (
+                                <div key={i} className="flex items-start gap-4 relative z-10">
+                                    <div className="bg-black text-white w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5 shadow-sm">{i+1}</div>
+                                    <div className="flex-1 pb-4 border-b border-gray-100 last:border-0">
+                                        <div className="flex justify-between items-baseline mb-1">
+                                            <span className="font-bold text-sm text-black">{s.action}</span>
+                                            <div className="text-right flex items-center gap-2">
+                                                <span className="text-[10px] font-bold text-gray-400 font-mono tracking-tight bg-gray-100 px-1.5 rounded">
+                                                    {formatFriendlyTime(s.startTimeSec)} - {formatFriendlyTime(endTime)}
+                                                </span>
+                                                <span className="font-bold text-xs text-black tabular-nums">→ {s.waterAmount}ml</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-gray-500 leading-snug">{s.description}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                 </div>
+            </div>
+
+            <div className="bg-black text-white p-6 rounded-2xl mt-4">
+                 <span className="text-[9px] font-black uppercase text-[#FBBF24] tracking-[0.2em] block mb-2">Champion Inspiration</span>
+                 <p className="font-medium text-xs leading-relaxed opacity-90">{recipe?.championInspiration || 'N/A'}</p>
+            </div>
+        </div>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-lg mx-auto pb-24 animate-fade-in space-y-6 px-1 relative">
         
       {/* 0. Hidden Capture Target */}
       <div style={{ position: 'absolute', left: '-9999px', top: '0', width: '450px', overflow: 'hidden' }}>
           <div ref={shareTargetRef} id="share-container">
-              <SharableCard recipe={recipe} />
+              <SharableCard />
           </div>
       </div>
 
@@ -413,7 +399,7 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
              
              {/* The visual preview for the user (Scaled down) */}
              <div className="transform scale-[0.85] origin-top md:scale-100 mb-0 flex justify-center">
-                <SharableCard recipe={recipe} />
+                <SharableCard />
              </div>
 
              <div className="flex flex-col gap-4 max-w-[400px] mx-auto px-4">
