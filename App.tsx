@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { RetroButton, RetroInput, RetroSelect, RetroCard, RetroSlider } from './components/RetroUI';
-import { BREWER_OPTIONS, PROCESS_OPTIONS, ROAST_OPTIONS, FLAVOR_OPTIONS, NOTE_OPTIONS, WEATHER_OPTIONS, STRUCTURE_OPTIONS, CHAMPION_OPTIONS } from './constants';
-import { BrewerType, CoffeeParams, CoffeeRecipe, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition, CalculationMode, RecipeStructure, ChampionMethod } from './types';
+import { BREWER_OPTIONS, PROCESS_OPTIONS, ROAST_OPTIONS, FLAVOR_OPTIONS, NOTE_OPTIONS, WEATHER_OPTIONS, STRUCTURE_OPTIONS, CHAMPION_OPTIONS, WATER_OPTIONS } from './constants';
+import { BrewerType, CoffeeParams, CoffeeRecipe, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition, CalculationMode, RecipeStructure, ChampionMethod, WaterStrategy } from './types';
 import { generateCoffeeRecipe } from './services/geminiService';
 import BrewTimer from './components/BrewTimer';
 
@@ -12,6 +12,8 @@ const ORIGIN_OPTIONS = [
 
 const LOADING_MESSAGES = [
   "解析產區風土 (Terroir)...",
+  "計算水質離子萃取動力學...",
+  "平衡鎂鈣離子鍵結能...",
   "模擬 2025 George Peng 變溫萃取...",
   "計算 2017 Chad Wang 冷陶瓷參數...",
   "應用 2016 Tetsu Kasuya 4:6 法則...",
@@ -28,7 +30,8 @@ const App: React.FC = () => {
     userCoffeeWeight: 20,
     calculationMode: CalculationMode.BY_DOSE, 
     structure: RecipeStructure.STANDARD,
-    championMethod: ChampionMethod.AUTO, // Default to AUTO
+    championMethod: ChampionMethod.AUTO, 
+    waterStrategy: WaterStrategy.DEFAULT, // Default
     brewer: BrewerType.V60,
     brewerCustom: '',
     flavorPreference: FlavorPreference.BALANCED,
@@ -200,8 +203,21 @@ const App: React.FC = () => {
             <RetroCard className="!p-8">
                 <div className="mb-8 flex items-center gap-4">
                     <div className="w-1.5 h-8 bg-blue-500 rounded-full"></div>
-                    <h2 className="font-serif font-black text-2xl text-white">環境與職人偏好</h2>
+                    <h2 className="font-serif font-black text-2xl text-white">環境與水質化學</h2>
                 </div>
+                
+                {/* Water Strategy Selector */}
+                <div className="mb-8 border-b border-white/5 pb-6">
+                    <div className="flex items-center gap-2 mb-2">
+                         <span className="text-xl">💧</span>
+                         <label className="font-serif font-bold text-retro-mute text-sm">沖煮用水策略 (Water Chemistry)</label>
+                    </div>
+                    <RetroSelect label="" name="waterStrategy" value={params.waterStrategy} onChange={handleInputChange} options={WATER_OPTIONS} />
+                    <p className="text-[10px] text-retro-mute px-1 mt-[-10px] leading-relaxed">
+                        *不同水質將改變 AI 對研磨度與溫度的運算邏輯 (例如：軟水需加強物理萃取)。
+                    </p>
+                </div>
+
                 <div className="grid grid-cols-2 gap-6 mb-8">
                     <RetroInput type="date" label="烘焙日期" name="roastDate" value={params.roastDate} onChange={handleInputChange} style={{ colorScheme: 'dark' }} />
                     <RetroSelect label="目前天氣" name="weather" value={params.weather} onChange={handleInputChange} options={WEATHER_OPTIONS} />
