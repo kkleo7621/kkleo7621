@@ -1,3 +1,4 @@
+
 export enum RoastLevel {
   LIGHT = '淺焙',
   MEDIUM_LIGHT = '淺中焙',
@@ -55,6 +56,16 @@ export enum RecipeStructure {
   BYPASS = 'Bypass 變奏 (高濃度萃取+補水)',
 }
 
+export enum ChampionMethod {
+  AUTO = '🤖 AI 智能媒合 (推薦)',
+  TETSU_46 = 'Tetsu Kasuya (4:6 法 / 酸甜可調)',
+  CHAD_WANG = 'Chad Wang (陶瓷濾杯 / 中心注水)',
+  MATT_WINTON = 'Matt Winton (五段式 / 大悶蒸)',
+  EMI_FUKAHORI = 'Emi Fukahori (多溫變奏)',
+  SHERRY_HSU = 'Sherry Hsu (混合研磨)',
+  MARTIN_WOLFL = 'Martin Wölfl (Melodrip 零擾動)',
+}
+
 export interface CoffeeParams {
   origin: string;
   process: string;
@@ -69,6 +80,7 @@ export interface CoffeeParams {
   roastDate: string;
   weather: WeatherCondition;
   structure: RecipeStructure;
+  championMethod: ChampionMethod; // New field
 }
 
 export interface RecipeStep {

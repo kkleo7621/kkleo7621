@@ -1,5 +1,6 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
-import { CoffeeParams, CoffeeRecipe, CalculationMode } from "../types";
+import { CoffeeParams, CoffeeRecipe, CalculationMode, ChampionMethod } from "../types";
 
 export const generateCoffeeRecipe = async (params: CoffeeParams): Promise<CoffeeRecipe> => {
   const apiKey = process.env.API_KEY;
@@ -9,24 +10,65 @@ export const generateCoffeeRecipe = async (params: CoffeeParams): Promise<Coffee
 
   const ai = new GoogleGenAI({ apiKey });
 
+  // Determine if we are in "Auto Mode" or "Locked Module Mode"
+  const isAutoMode = params.championMethod === ChampionMethod.AUTO;
+  const specificMethod = params.championMethod;
+
+  let methodInstruction = "";
+
+  if (isAutoMode) {
+    methodInstruction = `
+    **模式：AI 智能媒合 (Auto Match)**
+    請從以下 WBrC 冠軍技術庫中，根據使用者的豆況與環境，挑選「最適合」的一個邏輯來生成配方：
+    - Tetsu Kasuya (2016): 4:6 分段概念 (適合調整酸甜比)。
+    - Chad Wang (2017): 強調瓷濾杯保溫與中心注水 (適合乾淨度)。
+    - Matt Winton (2021): 五段式注水 (Big Bloom)。
+    - Sherry (2022): 混合研磨度 (Hybrid Grind)。
+    - Martin Wölfl (2024): Melodrip/零擾動 (適合極淺焙)。
+    
+    *媒合原則*：
+    - 若豆子極淺焙/難萃取，優先考慮 Martin (零擾動) 或 Matt (大悶蒸)。
+    - 若需要調整酸甜感，優先考慮 Tetsu 4:6。
+    - 若追求極致乾淨度，優先考慮 Chad Wang。
+    `;
+  } else {
+    methodInstruction = `
+    **模式：指定冠軍模組鎖定 (Locked Module: ${specificMethod})**
+    
+    使用者已明確指定使用 **${specificMethod}** 的手法。
+    
+    **重要指令：**
+    1. **架構鎖定**：你必須嚴格遵守 ${specificMethod} 的核心注水段數與邏輯 (例如：Tetsu 4:6 必須是 5 段注水；Chad Wang 必須是少段數中心注水)。不要隨意更換成別的冠軍手法。
+    2. **參數適應 (Parameter Adaptation)**：雖然架構鎖定，但你必須調整「研磨度」、「水溫」與「每段注水量比例」來適應使用者的豆子 (${params.origin}, ${params.roast}) 與天氣 (${params.weather})。
+       - *範例*：使用者選了 4:6 法 (通常粗研磨)，但豆子是「極淺焙」(難萃取)。你應該在保持 5 段注水架構的同時，建議「比原版 4:6 更細的研磨」或「更高的水溫 (93-94°C)」，而非死守原版參數。
+    `;
+  }
+
   const prompt = `
-    請作為「AI Master Brewing Engine」的首席職人咖啡師，運用 2014-2025 年 WBrC 世界冠軍的技術數據庫，為我設計一份極致的沖煮配方。
+    你現在是「AI Master Brewing Engine」的核心運算中樞。
+    
+    ${methodInstruction}
 
-    **【全變因深度總結 (Variable Synthesis Logic)】：**
-    作為大師，你必須在輸出中的 \`variableAnalysis\` 欄位提供「全變因深度分析」。請結合以下變數進行邏輯推導：
-    1. **產區與處理法**：根據 ${params.origin} 的海拔與 ${params.process} 的發酵度決定萃取效率。
-    2. **烘焙新鮮度 (烘焙日期: ${params.roastDate})**：分析排氣狀況，決定悶蒸(Bloom)的強度與擾動。
-    3. **環境變數 (${params.weather})**：考慮目前的溫濕度對濾杯散熱與水溫流失的補償。
-    4. **物理結構 (${params.brewer})**：針對濾杯的流速特性做出水量分配調整。
-    5. **個人偏好 (${params.flavorPreference}, ${params.notePreference})**：調整酸甜比例與口感重心。
+    **【使用者變因參數 (User Inputs)】**
+    1. **豆況**：${params.origin} (${params.process}, ${params.roast})。
+    2. **環境**：${params.weather} (烘焙日: ${params.roastDate})。
+    3. **器材**：${params.brewer} (${params.brewerCustom})。
+    4. **偏好**：${params.flavorPreference} / ${params.notePreference}。
+    5. **目標**：${params.calculationMode === CalculationMode.BY_DOSE ? `粉重 ${params.userCoffeeWeight}g (請自動推算水量)` : `總液量 ${params.targetVolume}ml (請自動推算粉重)`}。
+    6. **整體架構傾向**：${params.structure}。
 
-    **【WBrC 冠軍技術資料庫 (2014-2025)】：**
-    請靈活運用 2014 Stefanos (雙壺/熱穩定)、2016 Tetsu (4:6)、2017 Chad (冷陶瓷/香氣鎖死)、2022 Sherry (混合研磨/變溫)、2024 Martin (零擾動/Melodrip)、2025 George Peng (三段烘焙拼配/三段變溫) 等核心技術。
+    **【輸出 JSON 要求】**
+    請回傳符合以下結構的 JSON，所有文字使用繁體中文 (Traditional Chinese)：
 
-    **【輸出 JSON 要求】：**
-    - \`variableAnalysis\`：請撰寫一段具備科學邏輯的文字，解釋你為何根據「當前天氣」與「豆子新鮮度」等變數，對沖煮法做出了具體的調整（例如：因天氣冷而提高悶蒸溫度、因新鮮度高而增強擾動等）。
-    - \`championInspiration\`：清楚說明融合了哪幾位冠軍的手法。
-    - \`steps\`：必須包含精確的注水時間、水量與動作。
+    1. \`variableAnalysis\` (重要)：約 150 字。
+       - 若是指定模式，請解釋：「如何調整了 ${specificMethod} 的研磨或水溫來適應這支 ${params.roast} 豆」。
+       - 若是自動模式，請解釋：「為何選擇了這位冠軍的手法來對應這支豆子」。
+    2. \`grindSize\`：請給出具體建議 (例如: "中細研磨 C40: 24 clicks")。
+    3. \`championInspiration\`：明確寫出使用了哪位冠軍的邏輯 (若是指定模式，請顯示該冠軍名字)。
+    4. \`steps\`：
+       - \`waterAmount\` 必須是 **電子秤累計總顯示數字 (Cumulative Scale Reading)**。
+       - 時間安排必須合理。
+
   `;
 
   const response = await ai.models.generateContent({
@@ -41,12 +83,12 @@ export const generateCoffeeRecipe = async (params: CoffeeParams): Promise<Coffee
           waterRatio: { type: Type.STRING },
           totalWater: { type: Type.NUMBER },
           temperature: { type: Type.NUMBER },
-          grindSize: { type: Type.STRING },
+          grindSize: { type: Type.STRING, description: "修正後的研磨度建議" },
           tastingNotes: { type: Type.ARRAY, items: { type: Type.STRING } },
           flavorSummary: { type: Type.STRING },
-          variableAnalysis: { type: Type.STRING, description: "全變因聯動分析與沖煮邏輯總結" },
+          variableAnalysis: { type: Type.STRING, description: "解釋如何根據變因修改冠軍手法的邏輯" },
           baristaNotes: { type: Type.STRING },
-          championInspiration: { type: Type.STRING },
+          championInspiration: { type: Type.STRING, description: "提及參考了哪位冠軍的邏輯" },
           steps: {
             type: Type.ARRAY,
             items: {
@@ -54,7 +96,7 @@ export const generateCoffeeRecipe = async (params: CoffeeParams): Promise<Coffee
               properties: {
                 startTimeSec: { type: Type.NUMBER },
                 durationSec: { type: Type.NUMBER },
-                waterAmount: { type: Type.NUMBER },
+                waterAmount: { type: Type.NUMBER, description: "累計總水量 (Scale Reading)" },
                 waterTemp: { type: Type.NUMBER },
                 action: { type: Type.STRING },
                 description: { type: Type.STRING }

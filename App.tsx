@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { RetroButton, RetroInput, RetroSelect, RetroCard, RetroSlider } from './components/RetroUI';
-import { BREWER_OPTIONS, PROCESS_OPTIONS, ROAST_OPTIONS, FLAVOR_OPTIONS, NOTE_OPTIONS, WEATHER_OPTIONS, STRUCTURE_OPTIONS } from './constants';
-import { BrewerType, CoffeeParams, CoffeeRecipe, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition, CalculationMode, RecipeStructure } from './types';
+import { BREWER_OPTIONS, PROCESS_OPTIONS, ROAST_OPTIONS, FLAVOR_OPTIONS, NOTE_OPTIONS, WEATHER_OPTIONS, STRUCTURE_OPTIONS, CHAMPION_OPTIONS } from './constants';
+import { BrewerType, CoffeeParams, CoffeeRecipe, ProcessMethod, RoastLevel, FlavorPreference, NotePreference, WeatherCondition, CalculationMode, RecipeStructure, ChampionMethod } from './types';
 import { generateCoffeeRecipe } from './services/geminiService';
 import BrewTimer from './components/BrewTimer';
 
@@ -27,6 +28,7 @@ const App: React.FC = () => {
     userCoffeeWeight: 20,
     calculationMode: CalculationMode.BY_DOSE, 
     structure: RecipeStructure.STANDARD,
+    championMethod: ChampionMethod.AUTO, // Default to AUTO
     brewer: BrewerType.V60,
     brewerCustom: '',
     flavorPreference: FlavorPreference.BALANCED,
@@ -163,11 +165,25 @@ const App: React.FC = () => {
             <RetroCard className="!p-8">
                 <div className="mb-8 flex items-center gap-4">
                     <div className="w-1.5 h-8 bg-retro-secondary rounded-full"></div>
-                    <h2 className="font-serif font-black text-2xl text-white">冠軍架構與比例</h2>
+                    <h2 className="font-serif font-black text-2xl text-white">冠軍模組與參數</h2>
                 </div>
+                
+                {/* Champion Method Selector */}
+                <div className="mb-6 p-1 bg-gradient-to-r from-retro-accent/20 to-transparent rounded-2xl border border-retro-accent/20">
+                    <div className="bg-[#0f172a]/80 backdrop-blur rounded-xl p-2">
+                       <RetroSelect label="冠軍手法模組 (核心)" name="championMethod" value={params.championMethod} onChange={handleInputChange} options={CHAMPION_OPTIONS} />
+                       <p className="text-[10px] text-retro-mute px-2 -mt-2 mb-2 leading-relaxed">
+                          {params.championMethod === ChampionMethod.AUTO 
+                            ? "✨ AI 將根據您的豆況與天氣，自動媒合最適合的冠軍邏輯。" 
+                            : "🔒 已鎖定特定冠軍手法。AI 將維持該手法的核心架構，但會協助微調研磨度與水溫以適應豆況。"}
+                       </p>
+                    </div>
+                </div>
+
                 <div className="mb-8">
-                     <RetroSelect label="沖煮架構 (WBrC Style)" name="structure" value={params.structure} onChange={handleInputChange} options={STRUCTURE_OPTIONS} />
+                     <RetroSelect label="沖煮比例傾向" name="structure" value={params.structure} onChange={handleInputChange} options={STRUCTURE_OPTIONS} />
                 </div>
+                
                 <div className="mb-4">
                      <div className="flex bg-[#0f172a] p-1.5 rounded-[1.5rem] border border-white/10 mb-8">
                         <button onClick={() => setParams(p => ({...p, calculationMode: CalculationMode.BY_DOSE}))} className={`flex-1 py-3 px-3 text-xs font-black rounded-[1rem] transition-all ${params.calculationMode === CalculationMode.BY_DOSE ? 'bg-retro-surface text-white shadow-lg' : 'text-retro-mute'}`}>鎖定粉重</button>
