@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { CoffeeParams, CoffeeRecipe, CalculationMode, RecipeStructure } from "../types";
+import { CoffeeParams, CoffeeRecipe, CalculationMode } from "../types";
 
 export const generateCoffeeRecipe = async (params: CoffeeParams): Promise<CoffeeRecipe> => {
   const apiKey = process.env.API_KEY;
@@ -8,121 +8,73 @@ export const generateCoffeeRecipe = async (params: CoffeeParams): Promise<Coffee
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  const today = new Date().toISOString().split('T')[0];
-
-  // Logic to determine the core constraint
-  let quantityConstraint = "";
-  if (params.calculationMode === CalculationMode.BY_DOSE) {
-    quantityConstraint = `**核心限制：固定粉重 ${params.userCoffeeWeight}g**。請根據「架構設定」決定粉水比，計算總水量。`;
-  } else {
-    quantityConstraint = `**核心限制：固定目標咖啡液量 ${params.targetVolume} cc**。請計算適合的粉重與總注水量。`;
-  }
-
-  // Define Structure Logic for Gemini with BALANCE focus
-  let structureLogic = "";
-  if (params.structure === RecipeStructure.BYPASS) {
-    structureLogic = `
-      **架構要求：Bypass 變奏 (高濃度萃取+補水)**
-      1. 前段萃取請使用較濃的粉水比 (例如 1:10 ~ 1:12) 提取核心風味。
-      2. 萃取結束後，必須增加一個步驟：「移開濾杯，直接往咖啡液加入熱水 (Bypass)」。
-      3. **關鍵目標**：利用 Bypass 降低濃度但不稀釋甜感，創造出極致乾淨且平衡的口感。補水後的濃度必須適口，不能造成水感太重。
-      4. 總水量 (Total Water) 應包含沖煮用水 + Bypass 用水。
-    `;
-  } else if (params.structure === RecipeStructure.RICH) {
-    structureLogic = `
-      **架構要求：極致濃郁**
-      1. 粉水比控制在 1:10 到 1:13 之間。
-      2. **關鍵目標**：追求厚實口感(Body)的同時，**必須避免過度萃取帶來的苦澀**。請透過調整水溫(可能略降)或研磨度，確保入口依然圓潤平衡。
-    `;
-  } else if (params.structure === RecipeStructure.TEA_LIKE) {
-    structureLogic = `
-      **架構要求：茶感清爽**
-      1. 粉水比拉大至 1:16 到 1:19。
-      2. **關鍵目標**：追求花草茶般的通透感，但**必須保留核心甜感**，不可只有酸或產生「水味」。請透過提高水溫或調整研磨來維持萃取率。
-    `;
-  } else {
-    structureLogic = `**架構要求：經典平衡** (粉水比約 1:14 ~ 1:16)，這是最安全的甜蜜點，追求酸質與甜感的完美平衡。`;
-  }
 
   const prompt = `
-    請作為「Alishan Drip」的首席職人咖啡師，為我設計一份**高度客製化**的手沖咖啡配方。
+    請作為「AI Master Brewing Engine」的首席職人咖啡師，運用 2014-2025 年 WBrC 世界冠軍的技術數據庫，為我設計一份極致的沖煮配方。
 
-    **最高指導原則：**
-    **「平衡 (Balance) 與好喝」是最終目標。**
-    即使使用者選擇了極端的架構（如極濃或極淡），你必須透過其他變因（水溫、研磨度、注水手法）來修飾，**絕不能給出難以入口的極端配方**。配方應具備職人的細膩度，而非單純的數學計算。
+    **【WBrC 冠軍技術總集 (2014-2025)】：**
+    - **2014 Stefanos Domatiotis (希臘)**: 雙壺技法 (Double Kettle) 確保熱穩定性，強調鎂離子對 Ninety Plus Gesha 的風味解鎖。
+    - **2015 Odd-Steinar (挪威)**: 日曬豆正名，使用 iPhone 即時監控數據，天然極軟水帶出日曬豆的乾淨層次。
+    - **2016 Tetsu Kasuya (日本)**: 「4:6 沖煮法」，粗研磨+高濃度差斷水，0.3 PPM 極純水應用。
+    - **2017 Chad Wang (台灣)**: 「冷陶瓷濾杯 (Cold Ceramic V60)」概念，利用熱質量吸收前段熱能，中心注水減少 Bypass。
+    - **2018 Emi Fukahori (瑞士)**: 「混合萃取 (Hybrid Method)」(GINA濾杯)，浸泡與滴濾切換，處理低咖啡因 Laurina 品種。
+    - **2019 Du Jianing (中國)**: Origami 濾杯，極致的「二次研磨 (Double Grinding)」去除銀皮，4分鐘極快烘焙。
+    - **2021 Matt Winton (瑞士)**: 「物種拼配 (Species Blending)」(Eugenoides + Catucai)，5段式脈衝注水 (Pulse Pouring)。
+    - **2022 Sherry Hsu (台灣)**: 平底濾杯 (Orea)，「混合研磨 (Mixed Grind)」(75%粗/25%細)，70°C 低溫悶蒸 -> 95°C 高溫萃取。
+    - **2023 Carlos Medina (智利)**: 「多相品飲 (Polyphasic Tasting)」，Origami Air S，針對熱/溫/冷不同溫度的風味引導。
+    - **2024 Martin Wölfl (奧地利)**: 台上即時研磨 (On-stage Grinding)，Melodrip 搭配 Orea V4 減少擾動。
+    - **2025 George Peng (中國)**: 「三段式烘焙拼配」(同豆種不同出豆溫 1:1:1)，極端變溫萃取 (96°C 榨取香氣 -> 80°C 避免雜味)，50°C 黃金品飲窗口。
 
-    **核心參數：**
-    - ${quantityConstraint}
-    - 產區/豆種: ${params.origin}
-    - 處理法: ${params.process}
-    - 烘焙度: ${params.roast}
+    **【當前參數設定】：**
+    - 產區: ${params.origin} | 處理法: ${params.process} | 烘焙: ${params.roast}
+    - 模式: ${params.calculationMode === CalculationMode.BY_DOSE ? `固定粉重 ${params.userCoffeeWeight}g` : `目標液量 ${params.targetVolume}cc`}
+    - 架構偏好: ${params.structure} | 風味偏好: ${params.flavorPreference}
     - 濾杯: ${params.brewer === '自定義' ? params.brewerCustom : params.brewer}
-    
-    **用戶偏好與環境：**
-    - **沖煮架構 (Structure)**: ${params.structure} -> ${structureLogic}
-    - 風味目標: ${params.flavorPreference}
-    - 烘焙日期: ${params.roastDate} (今天是 ${today})
-    - 天氣: ${params.weather}
 
-    **設計邏輯與物理限制：**
+    **【生成要求】：**
+    1. **技術融合**：請根據用戶的豆況，選擇上述 1-2 個最適合的冠軍技術融入步驟中（例如：若選淺焙日曬，可參考 2015 或 2022 的低溫悶蒸技巧）。
+    2. **風味口感總結 (flavorSummary)**：請撰寫一段具備「展演感」的感官總結。描述咖啡在熱 (Hot)、溫 (Warm)、冷 (Cold) 不同階段的具體風味變化 (參考 2023 Carlos Medina)。
+    3. **大賽靈感 (championInspiration)**：明確指出本配方參考了哪位冠軍的哪項技術 (如：參考 2025 George Peng 的變溫手法)。
+    4. **詳細步驟**：若使用變溫或特殊注水（如中心注水、Melodrip），請在步驟描述中標註。
 
-    1.  **動態平衡機制 (Dynamic Balancing)**：
-        - 若粉水比很濃 (Rich)，請考慮稍微調粗研磨或降低水溫，避免過苦。
-        - 若粉水比很淡 (Tea-like)，請考慮細研磨或高溫，確保萃取率足夠。
-        - 若天氣潮濕且選擇了細研磨，請務必提醒使用者注意流速，避免堵塞。
-    2.  **Bypass 處理**：若為 Bypass 模式，最後一個步驟必須是 "Action: Bypass 加水", "WaterAmount: 最終總水量 (含補水)"，並在 Description 說明「移開濾杯，加入 X cc 熱水至總量，調整濃度至適口狀態」。
-    3.  **養豆期修正**：
-        - 新鮮豆 (<7天)：增加悶蒸時間。
-        - 老豆 (>1個月)：降低水溫。
-
-    **輸出語言要求：**
-    - 所有內容 **必須完全使用繁體中文**。
-
-    請提供精確的 JSON 格式回應。
+    請輸出繁體中文 JSON。
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            coffeeWeight: { type: Type.NUMBER, description: "Coffee dose in grams." },
-            waterRatio: { type: Type.STRING, description: "Effective brewing ratio (before bypass if applicable), e.g. 1:10" },
-            totalWater: { type: Type.NUMBER, description: "Total liquid output target (brewing water + bypass water)" },
-            temperature: { type: Type.NUMBER, description: "Water temperature in Celsius" },
-            grindSize: { type: Type.STRING, description: "Specific grind size description" },
-            tastingNotes: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Expected flavors" },
-            baristaNotes: { type: Type.STRING, description: "Explain the choice of Ratio and Structure with focus on balance" },
-            steps: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  startTimeSec: { type: Type.NUMBER },
-                  durationSec: { type: Type.NUMBER },
-                  waterAmount: { type: Type.NUMBER, description: "Cumulative water weight (scale reading)" },
-                  action: { type: Type.STRING, description: "Action name (e.g., 悶蒸, Bypass加水)" },
-                  description: { type: Type.STRING, description: "Specific instruction" },
-                }
+  const response = await ai.models.generateContent({
+    model: 'gemini-3-pro-preview',
+    contents: prompt,
+    config: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          coffeeWeight: { type: Type.NUMBER },
+          waterRatio: { type: Type.STRING },
+          totalWater: { type: Type.NUMBER },
+          temperature: { type: Type.NUMBER, description: "起始水溫" },
+          grindSize: { type: Type.STRING },
+          tastingNotes: { type: Type.ARRAY, items: { type: Type.STRING } },
+          flavorSummary: { type: Type.STRING, description: "熱/溫/冷 三段式風味描述" },
+          baristaNotes: { type: Type.STRING },
+          championInspiration: { type: Type.STRING },
+          steps: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                startTimeSec: { type: Type.NUMBER },
+                durationSec: { type: Type.NUMBER },
+                waterAmount: { type: Type.NUMBER },
+                waterTemp: { type: Type.NUMBER },
+                action: { type: Type.STRING },
+                description: { type: Type.STRING }
               }
             }
           }
         }
       }
-    });
-
-    if (response.text) {
-      const recipe = JSON.parse(response.text) as CoffeeRecipe;
-      return recipe;
-    } else {
-      throw new Error("No response text from Gemini");
     }
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    throw error;
-  }
+  });
+
+  return JSON.parse(response.text) as CoffeeRecipe;
 };

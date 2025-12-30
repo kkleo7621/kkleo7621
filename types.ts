@@ -59,14 +59,14 @@ export interface CoffeeParams {
   origin: string;
   process: string;
   roast: RoastLevel;
-  targetVolume: number; // Used if mode is BY_VOLUME
-  userCoffeeWeight: number; // Used if mode is BY_DOSE
+  targetVolume: number;
+  userCoffeeWeight: number;
   calculationMode: CalculationMode;
   brewer: BrewerType;
   brewerCustom: string;
   flavorPreference: FlavorPreference;
   notePreference: NotePreference;
-  roastDate: string; // YYYY-MM-DD
+  roastDate: string;
   weather: WeatherCondition;
   structure: RecipeStructure;
 }
@@ -74,18 +74,21 @@ export interface CoffeeParams {
 export interface RecipeStep {
   startTimeSec: number;
   durationSec: number;
-  waterAmount: number; // Target cumulative water weight at end of step
+  waterAmount: number;
+  waterTemp?: number; // Optional per-step temperature
   action: string;
   description: string;
 }
 
 export interface CoffeeRecipe {
-  coffeeWeight: number; // grams
-  waterRatio: string; // e.g. "1:15"
-  totalWater: number; // grams
-  temperature: number; // Celsius
-  grindSize: string; // Descriptive
+  coffeeWeight: number;
+  waterRatio: string;
+  totalWater: number;
+  temperature: number;
+  grindSize: string;
   tastingNotes: string[];
-  baristaNotes: string; // Explanation of the recipe logic
+  flavorSummary: string; // New field for detailed sensory summary
+  baristaNotes: string;
+  championInspiration?: string; 
   steps: RecipeStep[];
 }

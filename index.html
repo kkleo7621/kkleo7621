@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RetroBrew AI - Professional Pour-over Assistant</title>
+    <title>AI Master Brewing Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Quicksand (Headings) and Nunito (Body) for a rounded, bold look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,6 +64,53 @@
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #475569;
+      }
+
+      /* PRINT STYLES FOR SAVING PDF */
+      @media print {
+        body {
+          background-color: white;
+          color: black;
+        }
+        body * {
+          visibility: hidden;
+        }
+        #recipe-card, #recipe-card * {
+          visibility: visible;
+        }
+        #recipe-card {
+          position: fixed;
+          left: 50%;
+          top: 0;
+          transform: translateX(-50%);
+          width: 100%;
+          max-width: 500px;
+          margin: 0;
+          padding: 20px;
+          box-shadow: none;
+          border: 2px solid #000;
+          background-color: white !important;
+          color: black !important;
+        }
+        /* Hide buttons inside the card when printing */
+        #recipe-card button {
+          display: none !important;
+        }
+        /* Ensure text contrast in print */
+        #recipe-card header {
+            border-bottom-color: #000 !important;
+        }
+        #recipe-card h2, #recipe-card p, #recipe-card span {
+            color: black !important;
+        }
+        #recipe-card .bg-slate-100 {
+            background-color: #f0f0f0 !important;
+            border: 1px solid #ddd !important;
+        }
+        #recipe-card .bg-\[\#0f172a\] {
+            background-color: #eee !important;
+            color: black !important;
+        }
       }
     </style>
   <script type="importmap">

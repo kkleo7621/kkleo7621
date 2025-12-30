@@ -12,6 +12,7 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
   const [seconds, setSeconds] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
   
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -21,7 +22,6 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
 
   useEffect(() => {
     let interval: number | undefined;
-
     if (isActive && !isFinished) {
       interval = window.setInterval(() => {
         setSeconds(s => {
@@ -35,22 +35,16 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
         });
       }, 1000);
     }
-
     return () => clearInterval(interval);
   }, [isActive, isFinished, totalTime]);
 
-  // Sync current step
   useEffect(() => {
     if (isFinished) return;
     const stepIdx = recipe.steps.findIndex((step, idx) => {
       const nextStep = recipe.steps[idx + 1];
       const stepEnd = step.startTimeSec + step.durationSec;
-      
-      // If we are within this step's time range
       if (seconds >= step.startTimeSec && seconds < stepEnd) return true;
-      // If it's the last step and we are past start
       if (!nextStep && seconds >= step.startTimeSec) return true;
-      
       return false;
     });
 
@@ -71,20 +65,13 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
     setIsActive(!isActive);
   };
 
-  const resetTimerState = () => {
-    setIsActive(false);
-    setSeconds(0);
-    setIsFinished(false);
-    setCurrentStepIndex(0);
-  };
-
   const playBeep = (freq: number, duration: number) => {
     if (!audioContextRef.current) return;
     const osc = audioContextRef.current.createOscillator();
     const gain = audioContextRef.current.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, audioContextRef.current.currentTime);
-    gain.gain.setValueAtTime(0.1, audioContextRef.current.currentTime);
+    gain.gain.setValueAtTime(0.05, audioContextRef.current.currentTime);
     osc.connect(gain);
     gain.connect(audioContextRef.current.destination);
     osc.start();
@@ -100,130 +87,226 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset }) => {
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
+  // --- COMPONENT: SHARABLE RECIPE CARD ---
+  const RecipeCard = () => (
+    <div id="recipe-card" className="bg-[#f8fafc] text-[#0f172a] p-8 rounded-[2rem] shadow-2xl border-4 border-[#0f172a] max-w-[400px] mx-auto animate-fade-in relative overflow-hidden print:shadow-none print:border-2 print:border-black print:rounded-none">
+        {/* Decorative elements - hidden in print for ink saving */}
+        <div className="print:hidden absolute top-0 right-0 w-32 h-32 bg-retro-accent/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="print:hidden absolute bottom-0 left-0 w-24 h-24 bg-retro-secondary/10 rounded-full -ml-12 -mb-12"></div>
+        
+        <header className="border-b-2 border-[#0f172a] pb-4 mb-6 text-center">
+            <h2 className="font-serif text-3xl font-black uppercase tracking-tighter">Barista's Log</h2>
+            <div className="text-[10px] font-black tracking-[0.3em] uppercase opacity-60">AI Master Brewing Engine</div>
+        </header>
+
+        <div className="space-y-6">
+            <div className="flex justify-between items-start">
+                <div className="flex-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Dose / Water</span>
+                    <p className="font-serif font-black text-xl">{recipe.coffeeWeight}g / {recipe.totalWater}ml</p>
+                </div>
+                <div className="text-right flex-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Temp / Ratio</span>
+                    <p className="font-serif font-black text-xl">{recipe.temperature}°C / {recipe.waterRatio}</p>
+                </div>
+            </div>
+
+            <div className="bg-slate-100 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Grind Size</span>
+                <p className="font-body font-bold text-sm leading-tight text-slate-700">{recipe.grindSize}</p>
+            </div>
+
+            <div>
+                <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Sensory Notes</span>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                    {recipe.tastingNotes.map((note, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-slate-200 rounded-full text-[9px] font-black uppercase border border-slate-300">{note}</span>
+                    ))}
+                </div>
+                <p className="font-body text-xs font-bold leading-relaxed italic text-slate-600 border-l-4 border-retro-accent pl-3">
+                    "{recipe.flavorSummary}"
+                </p>
+            </div>
+
+            <div className="border-t border-slate-200 pt-4">
+                 <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Brewing Sequence</span>
+                 <div className="space-y-2">
+                    {recipe.steps.map((s, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                            <span className="font-serif font-black text-xs text-retro-accent w-4 text-center">{i+1}</span>
+                            <span className="font-body font-bold text-[10px] flex-1 text-slate-700">{s.action}</span>
+                            <span className="font-serif font-black text-[10px] text-slate-400">{s.waterAmount}ml</span>
+                            {s.waterTemp && <span className="text-[8px] font-bold text-slate-500 bg-slate-100 px-1 rounded">{s.waterTemp}°C</span>}
+                        </div>
+                    ))}
+                 </div>
+            </div>
+
+            <div className="bg-[#0f172a] text-white p-4 rounded-2xl print:bg-slate-200 print:text-black">
+                 <span className="text-[8px] font-black uppercase text-retro-accent tracking-widest block mb-1 print:text-slate-600">WBrC Inspiration</span>
+                 <p className="font-serif font-bold text-[10px]">{recipe.championInspiration}</p>
+            </div>
+        </div>
+
+        <footer className="mt-8 pt-4 border-t-2 border-dashed border-slate-200 text-center">
+            <div className="text-[8px] font-black tracking-widest uppercase text-slate-300">Certified by AI Master Brewing Engine</div>
+        </footer>
+    </div>
+  );
+
   return (
     <div className="w-full max-w-lg mx-auto pb-20 animate-fade-in space-y-6">
         
-      {/* 1. Timer & Action Card */}
-      <div className="bg-gradient-to-b from-retro-surface to-[#161e2e] text-white p-8 rounded-[2.5rem] shadow-soft relative overflow-hidden border border-retro-border">
-        {/* Glow effect */}
-        {isActive && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-retro-accent/20 blur-[50px] rounded-full"></div>}
-        
-        <div className="relative z-10 flex flex-col items-center">
-            <div className="text-xs font-bold tracking-[0.2em] text-retro-mute mb-2 uppercase">Brewing Timer</div>
-            <div className="font-serif text-8xl font-bold tabular-nums tracking-tighter mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
-                {formatTime(seconds)}
-            </div>
-
-            {/* Main Action Button */}
-            <div className="w-full px-4 mb-6">
-                {!isActive && !isFinished && seconds === 0 && (
-                    <RetroButton onClick={toggleTimer} className="w-full shadow-glow py-5 text-xl">開始沖煮 (START)</RetroButton>
-                )}
-                {isActive && (
-                    <RetroButton onClick={toggleTimer} variant="secondary" className="w-full py-5 text-xl">暫停 (PAUSE)</RetroButton>
-                )}
-                {!isActive && seconds > 0 && !isFinished && (
-                    <RetroButton onClick={toggleTimer} className="w-full shadow-glow py-5 text-xl">繼續 (RESUME)</RetroButton>
-                )}
-                {isFinished && (
-                    <RetroButton onClick={resetTimerState} variant="outline" className="w-full py-5 text-xl text-white border-white">重置 (RESET)</RetroButton>
-                )}
-            </div>
-
-            {!isFinished && (
-                <div className="w-full bg-[#0f172a]/50 p-6 rounded-3xl border border-retro-border/50 backdrop-blur-md">
-                    <div className="w-full flex justify-between items-end">
-                        <div>
-                            <div className="text-xs font-bold tracking-[0.2em] text-retro-secondary mb-1">CURRENT STEP</div>
-                            <div className="font-serif text-2xl font-bold text-white">{currentStep.action}</div>
-                        </div>
-                        <div className="font-serif text-4xl font-bold text-retro-accent tabular-nums">
-                            {isActive ? stepRemaining : currentStep.durationSec}s
-                        </div>
-                    </div>
+      {/* 1. Timer Card (Main Brewing UI) */}
+      {!showShareCard && (
+        <>
+          <div className="bg-gradient-to-b from-retro-surface to-[#0f172a] text-white p-10 rounded-[3rem] shadow-soft relative overflow-hidden border border-retro-border">
+            {isActive && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-retro-accent/10 blur-[80px] rounded-full"></div>}
+            
+            <div className="relative z-10 flex flex-col items-center">
+                <div className="text-[10px] font-black tracking-[0.3em] text-retro-accent mb-4 uppercase opacity-80">Brewing Real-time</div>
+                <div className="font-serif text-8xl font-extrabold tabular-nums tracking-tighter mb-10 text-white">
+                    {formatTime(seconds)}
                 </div>
-            )}
-             {isFinished && (
-                <div className="text-center py-4">
-                    <p className="font-serif text-2xl text-retro-accent animate-pulse">Enjoy your coffee.</p>
+
+                <div className="w-full mb-8">
+                    <RetroButton onClick={toggleTimer} className={`w-full py-5 text-xl font-black ${isActive ? 'bg-retro-border text-white' : 'bg-retro-accent text-retro-bg shadow-glow'}`}>
+                        {isFinished ? '已完成 (DONE)' : isActive ? '暫停沖煮 (PAUSE)' : seconds > 0 ? '繼續 (RESUME)' : '開始沖煮 (START)'}
+                    </RetroButton>
                 </div>
-            )}
-        </div>
-      </div>
 
-      {/* 2. Parameter Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-pink-900/20 border border-pink-500/30 rounded-3xl p-4 flex flex-col items-center justify-center h-28">
-            <span className="text-[10px] font-bold text-pink-300 uppercase tracking-widest mb-1">Dose</span>
-            <span className="font-serif text-3xl font-bold text-pink-100">{recipe.coffeeWeight}<span className="text-lg ml-1">g</span></span>
-        </div>
-        <div className="bg-cyan-900/20 border border-cyan-500/30 rounded-3xl p-4 flex flex-col items-center justify-center h-28">
-            <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-widest mb-1">Temp</span>
-            <span className="font-serif text-3xl font-bold text-cyan-100">{recipe.temperature}<span className="text-lg ml-1">°C</span></span>
-        </div>
-        <div className="col-span-1 bg-amber-900/20 border border-amber-500/30 rounded-3xl p-4 flex flex-col items-center justify-center min-h-[7rem] text-center">
-             <span className="text-[10px] font-bold text-amber-300 uppercase tracking-widest mb-1">Grind</span>
-             <span className="font-body text-xs font-bold text-amber-100 leading-tight px-1 line-clamp-3">{recipe.grindSize}</span>
-        </div>
-         <div className="col-span-1 bg-emerald-900/20 border border-emerald-500/30 rounded-3xl p-4 flex flex-col items-center justify-center h-28">
-             <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-widest mb-1">Total Time</span>
-             <span className="font-serif text-3xl font-bold text-emerald-100">{formatTime(totalTime)}</span>
-        </div>
-      </div>
-
-      {/* 3. Brewing Process List */}
-      <RetroCard>
-        <div className="flex items-center gap-4 mb-6">
-             <div className="h-2 w-2 rounded-full bg-retro-accent"></div>
-             <h3 className="font-serif text-xl font-bold text-white">沖煮流程</h3>
-        </div>
-
-        <div className="space-y-6 relative">
-            {/* Timeline line */}
-            <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-retro-border z-0"></div>
-
-            {recipe.steps.map((step, idx) => {
-                const isCurrent = idx === currentStepIndex && !isFinished;
-                const isPast = idx < currentStepIndex || isFinished;
-                return (
-                    <div key={idx} className={`relative z-10 flex gap-5 transition-opacity duration-500 ${isPast ? 'opacity-40' : 'opacity-100'}`}>
-                        <div className="flex-shrink-0 pt-1">
-                            <div className={`w-10 h-10 flex items-center justify-center rounded-full border-4 text-sm font-bold shadow-lg transition-all ${isCurrent ? 'bg-retro-accent border-[#0f172a] text-[#0f172a] scale-110 shadow-glow' : 'bg-[#0f172a] border-retro-border text-retro-mute'}`}>
-                                {idx + 1}
+                {!isFinished && (
+                    <div className="w-full bg-white/5 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-black tracking-widest text-retro-mute uppercase">Next Action</span>
+                            {currentStep.waterTemp && (
+                                <span className="text-xs font-black bg-retro-accent/20 text-retro-accent px-3 py-1 rounded-full border border-retro-accent/30">
+                                    {currentStep.waterTemp}°C
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex justify-between items-end">
+                            <div className="font-serif text-3xl font-black text-white">{currentStep.action}</div>
+                            <div className="font-serif text-5xl font-black text-retro-accent tabular-nums">
+                                {isActive ? stepRemaining : currentStep.durationSec}<span className="text-xl ml-1">s</span>
                             </div>
                         </div>
-                        <div className="flex-grow bg-[#0f172a]/50 p-4 rounded-2xl border border-retro-border/50">
-                             <div className="flex justify-between items-baseline mb-2">
-                                <h4 className={`font-serif text-lg font-bold ${isCurrent ? 'text-retro-accent' : 'text-white'}`}>{step.action}</h4>
-                                <span className="font-mono font-bold text-xs bg-retro-border/50 text-retro-dark px-2 py-1 rounded-md">{step.waterAmount} ML</span>
-                             </div>
-                             <p className="font-body text-retro-mute leading-relaxed text-sm mb-2">{step.description}</p>
-                             <div className="text-[10px] font-bold text-gray-500 tracking-widest uppercase">
-                                {formatTime(step.startTimeSec)} - {formatTime(step.startTimeSec + step.durationSec)}
-                             </div>
-                        </div>
                     </div>
-                );
-            })}
-        </div>
-      </RetroCard>
-
-      {/* 4. Barista Notes */}
-      <div className="py-2">
-          <div className="flex items-center gap-2 mb-3 justify-center">
-              <span className="bg-retro-secondary/20 text-retro-secondary border border-retro-secondary/30 px-3 py-1 text-xs font-bold rounded-full tracking-widest uppercase">Barista Notes</span>
+                )}
+            </div>
           </div>
-          <blockquote className="font-serif text-center text-lg text-gray-300 leading-relaxed italic px-4">
-              "{recipe.baristaNotes || recipe.tastingNotes.join(', ')}"
-          </blockquote>
-      </div>
 
-      <div className="mt-8 text-center pb-8">
-        <button onClick={onReset} className="font-body text-sm text-retro-mute hover:text-white transition-colors underline decoration-retro-accent/50 underline-offset-4">
-            ← 調整參數
-        </button>
-      </div>
+          <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
+              <div className="flex items-center gap-3 mb-4">
+                  <span className="text-xl">✨</span>
+                  <h3 className="font-serif font-black text-white text-lg tracking-wide uppercase">風味口感總結</h3>
+              </div>
+              <p className="font-body text-slate-300 leading-relaxed font-bold italic text-base">
+                  「{recipe.flavorSummary}」
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                  {recipe.tastingNotes.map((note, idx) => (
+                      <span key={idx} className="bg-retro-accent/10 text-retro-accent border border-retro-accent/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                          {note}
+                      </span>
+                  ))}
+              </div>
+          </div>
 
+          {recipe.championInspiration && (
+              <div className="px-6 py-4 bg-retro-surface/50 border border-retro-accent/20 rounded-3xl text-center">
+                  <span className="text-[10px] font-black text-retro-accent tracking-widest uppercase block mb-1">WBrC Champion Inspiration</span>
+                  <p className="font-serif font-bold text-white text-sm">{recipe.championInspiration}</p>
+              </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-[#1e293b] border border-white/5 rounded-[2rem] p-6 flex flex-col items-center shadow-lg">
+                <span className="text-[10px] font-black text-retro-mute uppercase tracking-widest mb-2">Dose</span>
+                <span className="font-serif text-4xl font-black text-white">{recipe.coffeeWeight}<span className="text-lg ml-1 opacity-50">g</span></span>
+            </div>
+            <div className="bg-[#1e293b] border border-white/5 rounded-[2rem] p-6 flex flex-col items-center shadow-lg">
+                <span className="text-[10px] font-black text-retro-mute uppercase tracking-widest mb-2">Temp</span>
+                <span className="font-serif text-4xl font-black text-white">{recipe.temperature}<span className="text-lg ml-1 opacity-50">°C</span></span>
+            </div>
+          </div>
+
+          <RetroCard className="!p-8">
+            <h3 className="font-serif text-2xl font-black text-white mb-8 flex items-center gap-3">
+                 <span className="w-1.5 h-6 bg-retro-accent rounded-full"></span>
+                 沖煮流程詳解
+            </h3>
+
+            <div className="space-y-8 relative">
+                <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-white/5 z-0"></div>
+
+                {recipe.steps.map((step, idx) => {
+                    const isCurrent = idx === currentStepIndex && !isFinished;
+                    const isPast = idx < currentStepIndex || isFinished;
+                    return (
+                        <div key={idx} className={`relative z-10 flex gap-6 transition-all duration-500 ${isPast ? 'opacity-30' : 'opacity-100'}`}>
+                            <div className="flex-shrink-0 pt-1">
+                                <div className={`w-12 h-12 flex items-center justify-center rounded-full border-4 font-black text-base shadow-xl transition-all ${isCurrent ? 'bg-retro-accent border-[#0f172a] text-[#0f172a] scale-110 shadow-glow' : 'bg-[#0f172a] border-white/10 text-retro-mute'}`}>
+                                    {idx + 1}
+                                </div>
+                            </div>
+                            <div className={`flex-grow p-6 rounded-[2rem] border transition-all ${isCurrent ? 'bg-white/5 border-retro-accent/50' : 'bg-transparent border-white/5'}`}>
+                                 <div className="flex justify-between items-baseline mb-2">
+                                    <h4 className={`font-serif text-xl font-black ${isCurrent ? 'text-retro-accent' : 'text-white'}`}>{step.action}</h4>
+                                    <span className="font-body font-black text-sm text-retro-mute">{step.waterAmount} ML</span>
+                                 </div>
+                                 <p className="font-body text-retro-mute/80 leading-relaxed text-sm font-bold">{step.description}</p>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+          </RetroCard>
+        </>
+      )}
+
+      {/* 2. Share Card View (Screenshot-friendly Page) */}
+      {showShareCard && (
+        <div className="space-y-8 py-4">
+             <div className="text-center px-8">
+                <h3 className="font-serif font-black text-2xl text-white mb-2">職人分享卡</h3>
+                <p className="text-xs font-bold text-retro-mute">此頁面已優化列印樣式，點擊下方按鈕即可儲存為 PDF</p>
+             </div>
+             
+             <RecipeCard />
+
+             <div className="flex flex-col gap-4 max-w-[400px] mx-auto pt-4 px-4">
+                <RetroButton onClick={() => window.print()} variant="outline" className="w-full text-white !border-white/20 hover:!bg-white/10">
+                   🖨️ 列印 / 另存為 PDF
+                </RetroButton>
+                <button onClick={() => setShowShareCard(false)} className="text-retro-mute font-black text-xs uppercase tracking-widest hover:text-white transition-all">
+                   ← 返回沖煮指導
+                </button>
+             </div>
+        </div>
+      )}
+
+      {/* Persistent Footer Actions */}
+      {!showShareCard && (
+        <div className="fixed bottom-6 left-0 right-0 px-6 z-40 max-w-lg mx-auto flex gap-4">
+            <RetroButton 
+                onClick={() => setShowShareCard(true)} 
+                variant="secondary" 
+                className="flex-1 bg-white text-[#0f172a] hover:bg-slate-200 shadow-2xl"
+            >
+                🗃️ 職人分享卡 (PDF/截圖)
+            </RetroButton>
+            <RetroButton 
+                onClick={onReset} 
+                variant="outline" 
+                className="bg-[#0f172a] text-white border-white/20 px-8"
+            >
+                ← 重設
+            </RetroButton>
+        </div>
+      )}
+
+      <div className="h-20"></div> {/* Spacer for fixed button */}
     </div>
   );
 };
