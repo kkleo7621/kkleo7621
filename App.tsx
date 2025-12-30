@@ -11,11 +11,11 @@ const ORIGIN_OPTIONS = [
 
 const LOADING_MESSAGES = [
   "解析產區風土 (Terroir)...",
-  "模擬 2025 WBrC 雙溫萃取曲線...",
-  "計算 2022 徐詩媛式低溫悶蒸時間...",
-  "優化 2024 Martin 零擾動水流...",
-  "建構職人級風味結構圖...",
-  "平衡酸甜苦鹹四大象限..."
+  "模擬 2025 George Peng 變溫萃取...",
+  "計算 2017 Chad Wang 冷陶瓷參數...",
+  "應用 2016 Tetsu Kasuya 4:6 法則...",
+  "優化 2022 Sherry 混合研磨比例...",
+  "平衡 2023 Carlos 多相品飲結構..."
 ];
 
 const App: React.FC = () => {
@@ -78,27 +78,34 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="mb-12 w-full max-w-lg flex flex-col items-center text-center animate-fade-in relative z-10">
         
-        {/* Premium Icon */}
+        {/* Premium Icon - Pour Over Action Style */}
         <div className="relative mb-8 group cursor-default">
            {/* Glow Effect */}
            <div className="absolute inset-0 bg-retro-accent/20 blur-2xl rounded-full group-hover:bg-retro-accent/30 transition-all duration-700"></div>
            
            {/* Card Container */}
-           <div className="relative w-24 h-24 rounded-[2rem] bg-gradient-to-br from-[#1e293b] to-[#020617] border border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transform rotate-6 hover:rotate-0 transition-all duration-500 ease-out overflow-hidden ring-1 ring-white/5 group-hover:scale-105 group-hover:shadow-[0_25px_50px_-12px_rgba(251,191,36,0.15)]">
+           <div className="relative w-28 h-28 rounded-[2.5rem] bg-gradient-to-br from-[#1e293b] to-[#020617] border border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transform rotate-3 hover:rotate-0 transition-all duration-500 ease-out overflow-hidden ring-1 ring-white/5 group-hover:scale-105 group-hover:shadow-[0_25px_50px_-12px_rgba(251,191,36,0.15)]">
               
               {/* Internal Sheen/Reflection */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-100"></div>
               <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 blur-xl rounded-full"></div>
               
-              {/* SVG Icon: V60 Dripper Style */}
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fbbf24] drop-shadow-[0_0_8px_rgba(251,191,36,0.4)] relative z-10">
-                <path d="M2 6h20" /> {/* Top Line */}
-                <path d="M4 6l8 11 8-11" /> {/* Cone */}
-                <path d="M12 17v4" /> {/* Drip */}
-                <path d="M8 21h8" /> {/* Base/Server */}
-                <path d="M12 2v2" className="opacity-60" /> {/* Steam */}
-                <path d="M9 3v1" className="opacity-40" />
-                <path d="M15 3v1" className="opacity-40" />
+              {/* SVG Icon: Pouring Action */}
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fbbf24] drop-shadow-[0_0_8px_rgba(251,191,36,0.6)] relative z-10 translate-y-1">
+                {/* Gooseneck Spout - Elegant Curve from Right */}
+                <path d="M21 7c0-3-4-3-4-3s-5 1-5 4v2" className="opacity-90"/>
+                
+                {/* Water Stream - Vertical flow */}
+                <path d="M12 10v6" strokeDasharray="1 2" className="animate-[pulse_1.5s_ease-in-out_infinite]" strokeWidth="1.5" />
+                
+                {/* Dripper - V60 Shape receiving water */}
+                <path d="M4 14h16l-8 8-8-8z" />
+                <path d="M4 14l2-3" opacity="0.4" />
+                <path d="M20 14l-2-3" opacity="0.4" />
+                
+                {/* Steam/Aroma */}
+                <path d="M16 4c0-1 1-2 1-2" opacity="0.4" />
+                <path d="M8 5c0-1-1-2-1-2" opacity="0.3" />
               </svg>
            </div>
         </div>
@@ -193,7 +200,7 @@ const App: React.FC = () => {
             {error && <div className="p-6 rounded-[1.5rem] bg-red-900/20 border border-red-500/30 text-red-200 font-black text-sm text-center">⚠️ {error}</div>}
 
             <RetroButton onClick={handleGenerate} className="w-full text-xl font-black py-6 shadow-glow">
-                ✨ 生成 2017-2025 職人配方
+                ✨ 生成 2014-2025 職人配方
             </RetroButton>
           </div>
         )}
@@ -210,7 +217,7 @@ const App: React.FC = () => {
             <span>WBrc ANALYTICS</span>
          </div>
          <p className="text-[9px] text-retro-mute/40 max-w-[280px] leading-relaxed">
-            POWERED BY GEMINI PRO PREVIEW. DATA INSIGHTS FROM WORLD BREWERS CUP CHAMPIONS 2017-2025.
+            POWERED BY GEMINI PRO PREVIEW. DATA INSIGHTS FROM WORLD BREWERS CUP CHAMPIONS 2014-2025.
          </p>
       </footer>
     </div>
