@@ -75,7 +75,7 @@ export interface RecipeStep {
   startTimeSec: number;
   durationSec: number;
   waterAmount: number;
-  waterTemp?: number; // Optional per-step temperature
+  waterTemp?: number;
   action: string;
   description: string;
 }
@@ -87,7 +87,8 @@ export interface CoffeeRecipe {
   temperature: number;
   grindSize: string;
   tastingNotes: string[];
-  flavorSummary: string; // New field for detailed sensory summary
+  flavorSummary: string;
+  variableAnalysis: string; // New: AI analysis of all input variables
   baristaNotes: string;
   championInspiration?: string; 
   steps: RecipeStep[];
