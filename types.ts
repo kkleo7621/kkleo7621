@@ -1,4 +1,6 @@
 
+export type Language = 'zh-TW' | 'en' | 'ja';
+
 export enum RoastLevel {
   LIGHT = '淺焙',
   MEDIUM_LIGHT = '淺中焙',
@@ -69,18 +71,18 @@ export enum ChampionMethod {
 export interface CoffeeParams {
   origin: string;
   process: string;
-  roast: RoastLevel;
+  roast: string; // Changed from Enum to string to support multi-language input
   targetVolume: number;
   userCoffeeWeight: number;
   calculationMode: CalculationMode;
-  brewer: BrewerType;
+  brewer: string; // Changed to string
   brewerCustom: string;
-  flavorPreference: FlavorPreference;
-  notePreference: NotePreference;
+  flavorPreference: string; // Changed to string
+  notePreference: string; // Changed to string
   roastDate: string;
-  weather: WeatherCondition;
-  structure: RecipeStructure;
-  championMethod: ChampionMethod; // New field
+  weather: string; // Changed to string
+  structure: string; // Changed to string
+  championMethod: string; // Changed to string
 }
 
 export interface RecipeStep {
@@ -100,7 +102,7 @@ export interface CoffeeRecipe {
   grindSize: string;
   tastingNotes: string[];
   flavorSummary: string;
-  variableAnalysis: string; // New: AI analysis of all input variables
+  variableAnalysis: string; 
   baristaNotes: string;
   championInspiration?: string; 
   steps: RecipeStep[];
