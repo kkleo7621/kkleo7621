@@ -78,34 +78,40 @@ const App: React.FC = () => {
       {/* Header */}
       <header className="mb-12 w-full max-w-lg flex flex-col items-center text-center animate-fade-in relative z-10">
         
-        {/* Premium Icon - Pour Over Action Style */}
+        {/* Premium Icon - High Dynamic Pouring Action */}
         <div className="relative mb-8 group cursor-default">
            {/* Glow Effect */}
            <div className="absolute inset-0 bg-retro-accent/20 blur-2xl rounded-full group-hover:bg-retro-accent/30 transition-all duration-700"></div>
            
            {/* Card Container */}
-           <div className="relative w-28 h-28 rounded-[2.5rem] bg-gradient-to-br from-[#1e293b] to-[#020617] border border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transform rotate-3 hover:rotate-0 transition-all duration-500 ease-out overflow-hidden ring-1 ring-white/5 group-hover:scale-105 group-hover:shadow-[0_25px_50px_-12px_rgba(251,191,36,0.15)]">
+           <div className="relative w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-[#1e293b] to-[#020617] border border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center transform rotate-0 hover:-rotate-3 transition-all duration-500 ease-out overflow-hidden ring-1 ring-white/5 group-hover:scale-105 group-hover:shadow-[0_25px_50px_-12px_rgba(251,191,36,0.15)]">
               
               {/* Internal Sheen/Reflection */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-100"></div>
               <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 blur-xl rounded-full"></div>
               
-              {/* SVG Icon: Pouring Action */}
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#fbbf24] drop-shadow-[0_0_8px_rgba(251,191,36,0.6)] relative z-10 translate-y-1">
-                {/* Gooseneck Spout - Elegant Curve from Right */}
-                <path d="M21 7c0-3-4-3-4-3s-5 1-5 4v2" className="opacity-90"/>
+              {/* SVG Icon: Dynamic Pouring Action */}
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" className="relative z-10 translate-y-1">
                 
-                {/* Water Stream - Vertical flow */}
-                <path d="M12 10v6" strokeDasharray="1 2" className="animate-[pulse_1.5s_ease-in-out_infinite]" strokeWidth="1.5" />
+                {/* 1. The Kettle Spout (Gooseneck) - Strong metallic curve */}
+                <path d="M21 3C20 3 17 4 16.5 7.5C15.5 11 13.5 10 12.5 10" className="text-slate-300 drop-shadow-md" strokeWidth="1.8" />
                 
-                {/* Dripper - V60 Shape receiving water */}
-                <path d="M4 14h16l-8 8-8-8z" />
-                <path d="M4 14l2-3" opacity="0.4" />
-                <path d="M20 14l-2-3" opacity="0.4" />
+                {/* 2. The Water Stream - Core (Gold) */}
+                <path d="M12.5 10.5V20" className="text-[#fbbf24] drop-shadow-[0_0_5px_rgba(251,191,36,0.8)]" strokeWidth="2.2" />
                 
-                {/* Steam/Aroma */}
-                <path d="M16 4c0-1 1-2 1-2" opacity="0.4" />
-                <path d="M8 5c0-1-1-2-1-2" opacity="0.3" />
+                {/* 3. The Water Stream - Flow Motion (White Dash Animation) */}
+                <path d="M12.5 10.5V20" className="text-white animate-pour opacity-90" strokeWidth="1.2" strokeDasharray="3 3" />
+                
+                {/* 4. The Impact / Coffee Bed - Ripples expanding */}
+                <path d="M8 17Q12.5 19.5 17 17" className="text-retro-accent opacity-50" strokeWidth="1.2" />
+                <path d="M9 16Q12.5 18 16 16" className="text-retro-accent opacity-30" strokeWidth="1" />
+                
+                {/* 5. Dripper Context (Subtle V Shape) */}
+                <path d="M4 12L12.5 21L21 12" className="text-slate-600 opacity-40" strokeWidth="1" />
+                <path d="M4 12H21" className="text-slate-600 opacity-30" strokeWidth="0.5" />
+
+                {/* 6. Steam / Heat - Rising up */}
+                <path d="M7 7Q6 5 7 3" className="text-white opacity-20" strokeWidth="1" />
               </svg>
            </div>
         </div>
