@@ -1,14 +1,12 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { CoffeeParams, CoffeeRecipe, CalculationMode, ChampionMethod, Language } from "../types";
+import { CoffeeParams, CoffeeRecipe, CalculationMode, Language } from "../types";
 
 export const generateCoffeeRecipe = async (params: CoffeeParams, language: Language): Promise<CoffeeRecipe> => {
   // Access API Key directly.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   // Determine if we are in "Auto Mode" or "Locked Module Mode"
-  // Note: params.championMethod is now a localized string, so we assume "Auto" if it contains "AI" or "Auto"
-  // or we can rely on the index if we had it, but simpler to check for the AI keyword.
   const isAutoMode = params.championMethod.includes("AI") || params.championMethod.includes("Auto") || params.championMethod.includes("智能");
   const specificMethod = params.championMethod;
 
@@ -49,15 +47,15 @@ export const generateCoffeeRecipe = async (params: CoffeeParams, language: Langu
     **User Inputs**:
     1. Origin/Bean: ${params.origin} (${params.process}, ${params.roast})
     2. Environment: ${params.weather} (Roast Date: ${params.roastDate})
-    3. Brewer: ${params.brewer} (${params.brewerCustom})
+    3. Equipment: Brewer [${params.brewer}], Grinder [${params.grinder}]
     4. Preferences: ${params.flavorPreference} / ${params.notePreference}
     5. Goal: ${params.calculationMode === CalculationMode.BY_DOSE ? `Dose ${params.userCoffeeWeight}g` : `Volume ${params.targetVolume}ml`}
     6. Structure: ${params.structure}
 
     **Response Requirements**:
     Return JSON.
-    1. \`variableAnalysis\`: Analyze why this specific method/parameter was chosen based on water chemistry and bean status.
-    2. \`grindSize\`: Specific recommendation (e.g., "Medium-Fine, Comandante 24 clicks").
+    1. \`variableAnalysis\`: Analyze why this specific method/parameter was chosen based on water chemistry, bean status and equipment.
+    2. \`grindSize\`: **CRITICAL** Provide specific click counts/settings for the user's grinder (${params.grinder}). e.g. "24 Clicks on Comandante" or "Setting 5.0 on Ode".
     3. \`championInspiration\`: Name of the champion.
     4. \`steps\`: \`waterAmount\` is the CUMULATIVE scale reading.
   `;

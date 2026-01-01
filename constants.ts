@@ -31,7 +31,8 @@ export const TRANSLATIONS = {
     label_weather: '目前天氣',
     label_flavor: '風味傾向',
     label_note: '口感重心',
-    label_brewer: '專業濾杯選擇',
+    label_brewer: '濾杯 (Dripper)',
+    label_grinder: '磨豆機 (Grinder)',
     label_custom_brewer: '自定義濾杯',
     btn_generate: '✨ 生成職人配方',
     error_msg: '職人配方生成失敗。請檢查連線或稍後再試。',
@@ -87,7 +88,8 @@ export const TRANSLATIONS = {
     label_weather: 'Current Weather',
     label_flavor: 'Flavor Goal',
     label_note: 'Body/Note Preference',
-    label_brewer: 'Brewer Selection',
+    label_brewer: 'Brewer (Dripper)',
+    label_grinder: 'Grinder',
     label_custom_brewer: 'Custom Brewer',
     btn_generate: '✨ Generate Master Recipe',
     error_msg: 'Failed to generate recipe. Please check connection.',
@@ -144,6 +146,7 @@ export const TRANSLATIONS = {
     label_flavor: 'フレーバー傾向',
     label_note: '質感・ボディ',
     label_brewer: 'ドリッパー選択',
+    label_grinder: 'グラインダー (ミル)',
     label_custom_brewer: 'カスタムドリッパー',
     btn_generate: '✨ レシピ生成',
     error_msg: 'レシピの生成に失敗しました。接続を確認してください。',
@@ -171,6 +174,80 @@ export const TRANSLATIONS = {
     step_water_to: '注水量'
   }
 };
+
+// 30+ Common Grinders
+const GRINDERS_LIST = [
+  "Comandante C40 MK3/MK4 (Red Clix)",
+  "Comandante C40 MK3/MK4 (Standard)",
+  "1Zpresso K-Ultra / K-Max",
+  "1Zpresso ZP6 Special",
+  "1Zpresso J-Max / J-Ultra",
+  "1Zpresso Q2 / Q-Air (Heptagonal)",
+  "1Zpresso X-Pro / X-Ultra",
+  "Timemore C2 / C3 / C3 ESP",
+  "Fellow Ode Gen 2",
+  "Fellow Ode Gen 1 (SSP Burrs)",
+  "Fellow Opus",
+  "Baratza Encore / Encore ESP",
+  "Baratza Vario / Forte",
+  "Mahlkönig EK43 / EK43S",
+  "Niche Zero",
+  "Niche Duo",
+  "Wilfa Svart (Uniform)",
+  "Lagom P64",
+  "Lagom Mini",
+  "Weber Workshops EG-1",
+  "Weber Key",
+  "Kinu M47 (Classic/Simplicity)",
+  "Kingrinder K4 / K6",
+  "Fuji Royal R-220 (小富士)",
+  "Kalita Nice Cut G",
+  "Varia VS3",
+  "DF64 (G-iota) Gen 2",
+  "Eureka Mignon (Filtro/Cronos)",
+  "Mazzer Philos",
+  "Hario MSS-1B / Skerton",
+  "Porlex Mini / Tall",
+  "Etzinger EtzMAX",
+  "Option-O Lagom 01",
+  "Generic Flat Burr (平刀)",
+  "Generic Conical Burr (錐刀)"
+];
+
+// 30+ Common Brewers
+const BREWERS_LIST = [
+  "Hario V60 (01/02 Ceramic/Plastic)",
+  "Hario Switch (Immersion)",
+  "Hario Mugen",
+  "Kalita Wave 155/185 (Metal)",
+  "Kalita Wave (Glass/Ceramic)",
+  "Origami Dripper S/M",
+  "Chemex (3/6/8 Cup)",
+  "Fellow Stagg [X]",
+  "Fellow Stagg [XF]",
+  "AeroPress / AeroPress Go",
+  "Kono Meimon (Classic)",
+  "April Brewer (Glass/Plastic)",
+  "Orea V3 / V4",
+  "Torch Mountain",
+  "Cafec Flower Dripper",
+  "Blue Bottle Dripper",
+  "Loveramics (Mellow/Smooth/Strong)",
+  "Saint Anthony C70",
+  "Clever Dripper (聰明濾杯)",
+  "Bee House",
+  "Phoenix 70",
+  "GINA (Goat Story)",
+  "Melitta (Classic)",
+  "Sanyo Sangyo Flower",
+  "Timemore Crystal Eye",
+  "Brewista Tornado",
+  "December Dripper (Variable)",
+  "Graycano",
+  "Sibarist FAST",
+  "Munieq Tetra Drip",
+  "Custom / Other"
+];
 
 export const GET_OPTIONS = (lang: Language) => {
   const isEn = lang === 'en';
@@ -233,10 +310,7 @@ export const GET_OPTIONS = (lang: Language) => {
     ] : [
       "經典平衡 (1:15 基準)", "極致濃郁 (1:10~1:13)", "茶感清爽 (1:17~1:19)", "Bypass 變奏 (高濃度萃取+補水)"
     ],
-    brewers: isEn ? [
-      "Hario V60", "Kalita Wave", "Origami", "Chemex", "Flat Bottom", "Custom"
-    ] : [
-      "Hario V60", "Kalita Wave (蛋糕濾杯)", "Origami (折紙濾杯)", "Chemex", "平底濾杯", "自定義"
-    ]
+    brewers: BREWERS_LIST,
+    grinders: GRINDERS_LIST
   };
 };

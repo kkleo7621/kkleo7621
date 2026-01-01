@@ -24,6 +24,7 @@ const App: React.FC = () => {
     championMethod: options.methods[0],
     brewer: options.brewers[0],
     brewerCustom: '',
+    grinder: options.grinders[0], // Default grinder
     flavorPreference: options.flavor[1], // Balanced
     notePreference: options.notes[1], // Balanced
     roastDate: new Date().toISOString().split('T')[0],
@@ -36,12 +37,9 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'form' | 'timer'>('form');
 
-  // Reset params when language changes to default to valid options in that language
-  // Or at least update the dropdowns (values will persist as strings, but UI needs to look good)
-  // To keep it simple, we just rely on the user to re-select if they want perfect language match, 
-  // but we can try to map indices if we wanted to be fancy.
-  // Here, we just ensure the dropdown LISTS are updated via the `options` constant.
-
+  // Sync params dropdown options when language changes (keeps value if it matches, otherwise resets to first)
+  // We won't force reset everything to avoid user annoyance, but we will ensure lists are fresh.
+  
   useEffect(() => {
     let interval: number;
     if (loading) {
@@ -199,10 +197,17 @@ const App: React.FC = () => {
             </RetroCard>
 
             <RetroCard className="!p-8">
-                <RetroSelect label={t.label_brewer} name="brewer" value={params.brewer} onChange={handleInputChange} options={options.brewers} />
-                {params.brewer.includes('Custom') || params.brewer.includes('自定義') || params.brewer.includes('カスタム') ? (
-                    <RetroInput label={t.label_custom_brewer} name="brewerCustom" value={params.brewerCustom} onChange={handleInputChange} placeholder="Model Name..." />
-                ) : null}
+                {/* Equipment Section */}
+                <div className="mb-4">
+                     <RetroSelect label={t.label_brewer} name="brewer" value={params.brewer} onChange={handleInputChange} options={options.brewers} />
+                     {params.brewer.includes('Custom') || params.brewer.includes('自定義') || params.brewer.includes('カスタム') ? (
+                        <RetroInput label={t.label_custom_brewer} name="brewerCustom" value={params.brewerCustom} onChange={handleInputChange} placeholder="Model Name..." />
+                    ) : null}
+                </div>
+                
+                <div className="mb-2">
+                     <RetroSelect label={t.label_grinder} name="grinder" value={params.grinder} onChange={handleInputChange} options={options.grinders} />
+                </div>
             </RetroCard>
 
             {error && <div className="p-6 rounded-[1.5rem] bg-red-900/20 border border-red-500/30 text-red-200 font-black text-sm text-center">⚠️ {error}</div>}

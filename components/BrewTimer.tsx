@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CoffeeRecipe, Language } from '../types';
-import { RetroButton, RetroCard } from './RetroUI';
+import { RetroButton } from './RetroUI';
 import { TRANSLATIONS } from '../constants';
 // @ts-ignore
 import html2canvas from 'html2canvas';
@@ -12,7 +12,9 @@ interface BrewTimerProps {
   language: Language;
 }
 
-// Extract SharableCard outside
+// ----------------------------------------------------------------------------
+// Share Card Component (Hidden for Image Generation)
+// ----------------------------------------------------------------------------
 const SharableCard = ({ id, recipe, language }: { id?: string; recipe: CoffeeRecipe | null, language: Language }) => {
     const steps = recipe?.steps || [];
     const t = TRANSLATIONS[language];
@@ -99,6 +101,9 @@ const SharableCard = ({ id, recipe, language }: { id?: string; recipe: CoffeeRec
     );
 };
 
+// ----------------------------------------------------------------------------
+// Main BrewTimer Component
+// ----------------------------------------------------------------------------
 const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset, language }) => {
   const [isActive, setIsActive] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -106,18 +111,18 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset, language }) => {
   const [isFinished, setIsFinished] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const shareTargetRef = useRef<HTMLDivElement>(null);
   const t = TRANSLATIONS[language];
 
-  // Safety check: ensure steps exist
   const steps = recipe?.steps || [];
+  const totalTime = steps.length > 0 ? steps[steps.length - 1].startTimeSec + steps[steps.length - 1].durationSec : 0;
 
-  const totalTime = steps.length > 0 
-    ? steps[steps.length - 1].startTimeSec + steps[steps.length - 1].durationSec 
-    : 0;
-
+  // -------------------------
+  // Timer Logic
+  // -------------------------
   useEffect(() => {
     let interval: number | undefined;
     if (isActive && !isFinished) {
@@ -126,7 +131,7 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset, language }) => {
           if (s >= totalTime) {
             setIsFinished(true);
             setIsActive(false);
-            playBeep(880, 0.5); 
+            if(soundEnabled) playBeep(880, 0.8, 'sine'); // Long finish beep
             return totalTime;
           }
           return s + 1;
@@ -134,24 +139,36 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset, language }) => {
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isActive, isFinished, totalTime]);
+  }, [isActive, isFinished, totalTime, soundEnabled]);
 
+  // Step Tracking & Auto Scroll
   useEffect(() => {
     if (isFinished) return;
     const stepIdx = steps.findIndex((step, idx) => {
       const nextStep = steps[idx + 1];
       const stepEnd = step.startTimeSec + step.durationSec;
+      // Current if within time range
       if (seconds >= step.startTimeSec && seconds < stepEnd) return true;
+      // Or if it's the last step and we are past its start (but before finish total)
       if (!nextStep && seconds >= step.startTimeSec) return true;
       return false;
     });
 
     if (stepIdx !== -1 && stepIdx !== currentStepIndex) {
         setCurrentStepIndex(stepIdx);
-        if(isActive) playBeep(440, 0.1); 
+        if(isActive && soundEnabled) playBeep(523.25, 0.2, 'square'); // C5 note for step change
+        
+        // Focus active step
+        const element = document.getElementById(`step-${stepIdx}`);
+        if(element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
-  }, [seconds, steps, currentStepIndex, isActive, isFinished]);
+  }, [seconds, steps, currentStepIndex, isActive, isFinished, soundEnabled]);
 
+  // -------------------------
+  // Helpers
+  // -------------------------
   const toggleTimer = () => {
     if(!audioContextRef.current) {
         const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
@@ -163,11 +180,11 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset, language }) => {
     setIsActive(!isActive);
   };
 
-  const playBeep = (freq: number, duration: number) => {
+  const playBeep = (freq: number, duration: number, type: OscillatorType = 'sine') => {
     if (!audioContextRef.current) return;
     const osc = audioContextRef.current.createOscillator();
     const gain = audioContextRef.current.createGain();
-    osc.type = 'sine';
+    osc.type = type;
     osc.frequency.setValueAtTime(freq, audioContextRef.current.currentTime);
     gain.gain.setValueAtTime(0.05, audioContextRef.current.currentTime);
     osc.connect(gain);
@@ -176,255 +193,216 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset, language }) => {
     osc.stop(audioContextRef.current.currentTime + duration);
   };
 
-  const currentStep = steps[currentStepIndex] || steps[steps.length - 1] || { startTimeSec: 0, durationSec: 0, action: 'Ready', description: 'Preparing...', waterAmount: 0 };
-  const stepRemaining = Math.max(0, (currentStep.startTimeSec + currentStep.durationSec) - seconds);
-
-  const formatDigitalTime = (totalSeconds: number) => {
-    const m = Math.floor(totalSeconds / 60);
-    const s = totalSeconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const formatFriendlyTime = (totalSeconds: number) => {
-    const m = Math.floor(totalSeconds / 60);
-    const s = totalSeconds % 60;
-    if (m > 0) {
-        return `${m}m ${s.toString().padStart(2, '0')}s`;
-    }
-    return `${s}s`;
-  };
-
   const handleSaveImage = async () => {
     const cardElement = shareTargetRef.current;
-    if (!cardElement) {
-        console.error("Capture target not found");
-        return;
-    }
-
+    if (!cardElement) return;
     setIsSaving(true);
     await new Promise(r => setTimeout(r, 300));
-
     try {
         const canvas = await html2canvas(cardElement, {
             scale: 3, 
             backgroundColor: '#ffffff',
             useCORS: true,
-            allowTaint: true,
-            logging: false,
             windowWidth: cardElement.scrollWidth,
             windowHeight: cardElement.scrollHeight,
-            onclone: (clonedDoc: Document) => {
-              const el = clonedDoc.getElementById('share-container');
-              if (el) {
-                el.style.transform = 'none';
-                el.style.opacity = '1';
-                el.style.visibility = 'visible';
-                el.style.display = 'block';
-                el.style.position = 'relative'; 
-                el.style.left = 'auto';
-                el.style.top = 'auto';
-                el.style.margin = '20px auto';
-              }
+            onclone: (doc: Document) => {
+               const el = doc.getElementById('share-container');
+               if(el) { el.style.display='block'; el.style.visibility='visible'; }
             }
         });
-
         canvas.toBlob(async (blob: Blob | null) => {
-            if (!blob) {
-                setIsSaving(false);
-                return;
+            if (!blob) { setIsSaving(false); return; }
+            const file = new File([blob], `WBrC-Log-${Date.now()}.png`, { type: 'image/png' });
+            if (navigator.share && navigator.canShare({ files: [file] })) {
+                try { await navigator.share({ files: [file], title: 'Brewing Log' }); } catch(e){}
+            } else {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url; link.download = file.name;
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
             }
-
-            const fileName = `WBrC-MasterLog-${Date.now()}.png`;
-            const file = new File([blob], fileName, { type: 'image/png' });
-
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: 'AI Master Brewing Log',
-                        text: '專業手沖變因分析與冠軍配方',
-                    });
-                    setIsSaving(false);
-                    return;
-                } catch (e) { console.log("Share API cancelled/failed, falling back to download"); }
-            }
-
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
             setIsSaving(false);
         }, 'image/png');
-
-    } catch (error) {
-        console.error("Save failed:", error);
-        alert("Image generation failed.");
-        setIsSaving(false);
-    }
+    } catch (error) { setIsSaving(false); alert("Error generating image"); }
   };
 
+  const formatDigitalTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  };
+  
+  const formatFriendlyTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    if(m > 0) return `${m}m ${sec}s`;
+    return `${sec}s`;
+  };
+
+  // -------------------------
+  // Render
+  // -------------------------
+  const currentStep = steps[currentStepIndex] || { startTimeSec: 0, durationSec: 0, action: 'Ready', description: 'Prepare equipment...', waterAmount: 0 };
+  const stepRemaining = Math.max(0, (currentStep.startTimeSec + currentStep.durationSec) - seconds);
+  const stepProgressPercent = Math.min(100, Math.max(0, ((currentStep.durationSec - stepRemaining) / currentStep.durationSec) * 100));
+
+  const isSetupMode = !isActive && seconds === 0 && !isFinished;
+
   return (
-    <div className="w-full max-w-lg mx-auto pb-24 animate-fade-in space-y-6 px-1 relative">
+    <div className="w-full max-w-lg mx-auto pb-48 animate-fade-in relative px-1">
         
-      {/* 0. Hidden Capture Target */}
-      <div style={{ position: 'absolute', left: '-9999px', top: '0', width: '450px', overflow: 'hidden' }}>
-          <div ref={shareTargetRef} id="share-container">
-              <SharableCard recipe={recipe} language={language} />
-          </div>
+      {/* Hidden Capture Target */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '0', width: '450px' }}>
+          <div ref={shareTargetRef} id="share-container"><SharableCard recipe={recipe} language={language} /></div>
       </div>
 
-      {/* 1. Timer UI */}
-      {!showShareCard && (
+      {!showShareCard ? (
         <>
-          <div className="bg-gradient-to-b from-retro-surface to-[#0f172a] text-white p-10 rounded-[3rem] shadow-soft relative overflow-hidden border border-retro-border">
-            {isActive && <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-retro-accent/10 blur-[80px] rounded-full"></div>}
-            
-            <div className="relative z-10 flex flex-col items-center">
-                <div className="text-[10px] font-black tracking-[0.3em] text-retro-accent mb-4 uppercase opacity-80">{t.timer_brewing}</div>
-                <div className="font-serif text-8xl font-extrabold tabular-nums tracking-tighter mb-10 text-white">
-                    {formatDigitalTime(seconds)}
+            {/* 1. Global Header (Compact) */}
+            <div className="sticky top-0 z-50 bg-[#0f172a]/95 backdrop-blur-md border-b border-white/5 -mx-6 px-6 py-3 shadow-lg flex justify-between items-center transition-all">
+                <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" style={{ opacity: isActive ? 1 : 0 }}></div>
+                    <span className="font-mono text-2xl font-bold text-white tracking-tight">{formatDigitalTime(seconds)}</span>
                 </div>
-
-                <div className="w-full mb-8">
-                    <RetroButton onClick={toggleTimer} className={`w-full py-5 text-xl font-black ${isActive ? 'bg-retro-border text-white' : 'bg-retro-accent text-retro-bg shadow-glow'}`}>
-                        {isFinished ? t.timer_done : isActive ? t.timer_pause : seconds > 0 ? t.timer_resume : t.timer_start}
-                    </RetroButton>
+                <div className="flex gap-4">
+                     <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-retro-mute hover:text-white">
+                        {soundEnabled ? '🔊' : '🔇'}
+                     </button>
                 </div>
+            </div>
 
-                {!isFinished && (
-                    <div className="w-full bg-white/5 backdrop-blur-xl p-8 rounded-[2rem] border border-white/10">
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="text-[10px] font-black tracking-widest text-retro-mute uppercase">{t.timer_next}</span>
-                            {currentStep.waterTemp && <span className="text-xs font-black text-retro-accent bg-retro-accent/10 px-2 rounded-full border border-retro-accent/20">{currentStep.waterTemp}°C</span>}
-                        </div>
-                        <div className="flex justify-between items-end">
-                            <div className="font-serif text-2xl font-black text-white">{currentStep.action}</div>
-                            <div className="font-serif text-4xl font-black text-retro-accent tabular-nums">
-                                {isActive ? stepRemaining : currentStep.durationSec}<span className="text-xl ml-1">s</span>
-                            </div>
+            {/* 2. Setup Briefing (Visible clearly before start, dims after start) */}
+            <div className={`transition-all duration-700 ease-out space-y-4 mt-6 ${isSetupMode ? 'opacity-100 translate-y-0' : 'opacity-40 scale-95 hidden'}`}>
+                {/* Equipment & Analysis Card */}
+                <div className="bg-[#1e293b] rounded-3xl p-6 border border-white/10 shadow-xl">
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xl">📋</span>
+                        <h3 className="text-xs font-black uppercase text-retro-mute tracking-[0.2em]">{t.timer_analysis}</h3>
+                    </div>
+                    
+                    {/* Grind Size Highlight */}
+                    <div className="mb-4 bg-retro-accent/10 border border-retro-accent/20 rounded-xl p-4 flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-retro-accent flex items-center justify-center text-[#0f172a] font-bold text-lg">⚙️</div>
+                        <div>
+                            <span className="text-[10px] text-retro-mute uppercase tracking-widest block mb-0.5">{t.timer_grind}</span>
+                            <span className="font-serif text-base font-black text-white leading-tight block">{recipe?.grindSize}</span>
                         </div>
                     </div>
-                )}
+
+                    <p className="text-sm font-bold text-slate-300 leading-relaxed text-justify border-t border-white/5 pt-4">
+                        {recipe?.variableAnalysis}
+                    </p>
+                    <div className="mt-4 flex gap-4 text-xs font-mono text-retro-mute">
+                        <span>🌡️ {recipe?.temperature}°C</span>
+                        <span>💧 {recipe?.totalWater}ml</span>
+                        <span>⚖️ 1:{recipe?.waterRatio}</span>
+                    </div>
+                </div>
+                
+                <div className="text-center py-2">
+                     <span className="text-[10px] text-retro-mute uppercase tracking-widest animate-pulse">
+                         ↓ SCROLL FOR TIMELINE ↓
+                     </span>
+                </div>
             </div>
-          </div>
 
-          {/* NEW: Dashboard for Critical Parameters */}
-          <div className="grid grid-cols-3 gap-3">
-             <div className="bg-[#1e293b] p-4 rounded-2xl border border-white/5 text-center flex flex-col justify-center">
-                  <span className="text-[9px] text-retro-mute uppercase tracking-widest mb-1">{t.timer_temp}</span>
-                  <span className="font-serif text-lg font-black text-white">{recipe?.temperature || 0}°C</span>
-             </div>
-             <div className="bg-[#1e293b] p-4 rounded-2xl border border-white/5 text-center flex flex-col justify-center">
-                  <span className="text-[9px] text-retro-mute uppercase tracking-widest mb-1">{t.timer_total}</span>
-                  <span className="font-serif text-lg font-black text-white">{recipe?.totalWater || 0}ml</span>
-             </div>
-             <div className="bg-[#1e293b] p-4 rounded-2xl border border-white/5 text-center flex flex-col justify-center">
-                  <span className="text-[9px] text-retro-mute uppercase tracking-widest mb-1">{t.timer_ratio}</span>
-                  <span className="font-serif text-lg font-black text-white">{recipe?.waterRatio || '1:15'}</span>
-             </div>
-          </div>
+            {/* 3. Integrated Timeline */}
+            <div className={`relative space-y-6 mt-6 transition-all ${isSetupMode ? '' : 'mt-20'}`}>
+                {/* Connector Line */}
+                <div className="absolute left-[27px] top-6 bottom-6 w-0.5 bg-white/5 z-0"></div>
 
-          {/* NEW: Prominent Grind Size Banner */}
-          <div className="bg-retro-surface p-5 rounded-[2rem] border border-retro-accent/30 shadow-lg flex items-center gap-4 relative overflow-hidden">
-             <div className="absolute right-0 top-0 bottom-0 w-2 bg-retro-accent"></div>
-             <div className="w-10 h-10 rounded-full bg-retro-accent flex items-center justify-center text-[#0f172a] font-black text-lg shadow-glow">⚙️</div>
-             <div>
-                 <span className="text-[10px] text-retro-mute uppercase tracking-widest block mb-1">{t.timer_grind}</span>
-                 <span className="font-serif text-lg font-black text-white leading-tight">{recipe?.grindSize || 'N/A'}</span>
-             </div>
-          </div>
-
-          {/* Master Analysis Section */}
-          <div className="bg-[#1e293b] border-2 border-white/5 rounded-[2.5rem] p-8 shadow-xl relative overflow-hidden">
-              <div className="flex items-center gap-3 mb-5">
-                  <div className="w-2 h-2 rounded-full bg-retro-accent animate-pulse"></div>
-                  <h3 className="font-serif font-black text-white text-lg tracking-widest uppercase">{t.timer_analysis}</h3>
-              </div>
-              <p className="font-body text-slate-300 leading-relaxed font-bold text-[14px] bg-black/20 p-5 rounded-2xl border border-white/5 text-justify">
-                  {recipe?.variableAnalysis || 'Analysis not available.'}
-              </p>
-          </div>
-
-          {/* Champion Inspiration Section */}
-          <div className="bg-retro-surface/50 border border-white/10 rounded-[2.5rem] p-8 shadow-lg">
-              <div className="flex items-center gap-3 mb-4">
-                  <span className="text-xl">🏆</span>
-                  <h3 className="font-serif font-black text-white text-lg tracking-widest uppercase">{t.timer_champ}</h3>
-              </div>
-              <p className="font-body text-slate-300 leading-relaxed font-bold text-[13px] border-l-4 border-retro-accent pl-4">
-                  {recipe?.championInspiration || 'N/A'}
-              </p>
-          </div>
-
-          {/* Brewing Steps List (Updated with Time & Water) */}
-          <RetroCard className="!p-8">
-            <h3 className="font-serif text-2xl font-black text-white mb-8 flex items-center gap-3">
-                 <span className="w-1.5 h-6 bg-retro-accent rounded-full"></span>
-                 {t.timer_steps}
-            </h3>
-            <div className="space-y-6 relative">
-                <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-white/5 z-0"></div>
                 {steps.map((step, idx) => {
                     const isCurrent = idx === currentStepIndex && !isFinished;
                     const isPast = idx < currentStepIndex || isFinished;
-                    const endTime = step.startTimeSec + step.durationSec;
+                    const isFuture = idx > currentStepIndex;
                     
                     return (
-                        <div key={idx} className={`relative z-10 flex gap-5 transition-all duration-500 ${isPast ? 'opacity-40' : 'opacity-100'}`}>
-                            <div className="flex-shrink-0 pt-1">
-                                <div className={`w-12 h-12 flex items-center justify-center rounded-full border-4 font-black text-base transition-all ${isCurrent ? 'bg-retro-accent border-[#0f172a] text-[#0f172a] scale-110' : 'bg-[#0f172a] border-white/10 text-retro-mute'}`}>
-                                    {idx + 1}
+                        <div 
+                            key={idx} 
+                            id={`step-${idx}`} 
+                            className={`relative z-10 transition-all duration-500 ease-out ${isCurrent ? 'scale-100 opacity-100 my-8' : 'scale-95 my-2'} ${isPast ? 'opacity-40 grayscale' : ''} ${isFuture ? 'opacity-50' : ''}`}
+                        >
+                            <div className={`
+                                overflow-hidden rounded-[2rem] border transition-all duration-500
+                                ${isCurrent 
+                                    ? 'bg-[#1e293b] border-retro-accent shadow-[0_0_40px_-10px_rgba(251,191,36,0.2)]' 
+                                    : 'bg-[#0f172a] border-white/5'
+                                }
+                            `}>
+                                {/* Active Step Header (Timer Mode) */}
+                                {isCurrent && (
+                                    <div className="bg-retro-accent/10 p-6 flex justify-between items-center border-b border-retro-accent/10">
+                                        <div>
+                                            <span className="text-[9px] font-black uppercase text-retro-accent tracking-widest block mb-1">Step {idx+1} Timer</span>
+                                            <span className="font-mono text-4xl font-black text-white tracking-tighter tabular-nums">{stepRemaining}s</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-[9px] font-black uppercase text-retro-mute tracking-widest block mb-1">{t.step_water_to}</span>
+                                            <span className="font-mono text-3xl font-black text-white tracking-tighter tabular-nums">{step.waterAmount}<span className="text-base text-retro-mute ml-1">ml</span></span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="p-6 flex gap-5 items-start">
+                                    {/* Number Circle */}
+                                    <div className={`flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full font-black text-sm border-2 ${isCurrent ? 'bg-retro-accent border-retro-accent text-[#0f172a]' : 'bg-transparent border-white/10 text-retro-mute'}`}>
+                                        {isPast ? '✓' : idx + 1}
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-grow">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <h4 className={`font-serif text-xl font-black ${isCurrent ? 'text-retro-accent' : 'text-white'}`}>
+                                                {step.action}
+                                            </h4>
+                                            {!isCurrent && (
+                                                 <span className="font-mono text-xs font-bold text-retro-mute bg-white/5 px-2 py-1 rounded">
+                                                    {t.step_water_to} {step.waterAmount}ml
+                                                 </span>
+                                            )}
+                                        </div>
+                                        
+                                        <p className={`font-body font-bold text-sm leading-relaxed ${isCurrent ? 'text-slate-200' : 'text-slate-500'}`}>
+                                            {step.description}
+                                        </p>
+
+                                        {/* Progress Bar (Only Active) */}
+                                        {isCurrent && isActive && (
+                                            <div className="mt-6 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-retro-accent transition-all duration-1000 ease-linear shadow-[0_0_10px_#FBBF24]" style={{ width: `${stepProgressPercent}%` }}></div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex-grow">
-                                 {/* New Header Line with Time and Water */}
-                                 <div className="flex justify-between items-center mb-2">
-                                     <h4 className={`font-serif text-lg font-black ${isCurrent ? 'text-retro-accent' : 'text-white'}`}>{step.action}</h4>
-                                     <div className="flex gap-2">
-                                        <span className="bg-[#0f172a] border border-white/10 px-2 py-0.5 rounded text-[10px] font-mono text-retro-mute font-bold">
-                                            {formatFriendlyTime(step.startTimeSec)} - {formatFriendlyTime(endTime)}
-                                        </span>
-                                        <span className="bg-retro-accent/10 border border-retro-accent/20 px-2 py-0.5 rounded text-[10px] font-mono text-retro-accent font-bold">
-                                            {t.step_water_to} {step.waterAmount}ml
-                                        </span>
-                                     </div>
-                                 </div>
-                                 <p className="font-body text-retro-mute/90 leading-relaxed text-sm font-bold bg-[#0f172a]/50 p-3 rounded-xl border border-white/5">
-                                    {step.description}
-                                 </p>
                             </div>
                         </div>
                     );
                 })}
+                
+                {/* Finish Message */}
+                {isFinished && (
+                    <div className="text-center p-8 bg-green-900/20 border border-green-500/30 rounded-3xl animate-fade-in">
+                        <div className="text-4xl mb-4">☕</div>
+                        <h3 className="font-serif text-2xl font-black text-white mb-2">Enjoy your coffee!</h3>
+                        <p className="text-sm text-green-200/60 font-bold">Extraction Complete.</p>
+                    </div>
+                )}
             </div>
-          </RetroCard>
-        </>
-      )}
 
-      {/* 2. Share View UI */}
-      {showShareCard && (
+        </>
+      ) : (
+        /* 3. SHARE VIEW */
         <div className="space-y-8 py-6">
              <div className="text-center px-8">
                 <h3 className="font-serif font-black text-2xl text-white mb-2">{t.share_title}</h3>
                 <p className="text-[10px] font-black text-retro-mute uppercase tracking-widest">{t.share_subtitle}</p>
              </div>
-             
-             {/* The visual preview for the user (Scaled down) */}
              <div className="transform scale-[0.85] origin-top md:scale-100 mb-0 flex justify-center">
                 <SharableCard recipe={recipe} language={language} />
              </div>
-
              <div className="flex flex-col gap-4 max-w-[400px] mx-auto px-4">
-                <RetroButton 
-                    onClick={handleSaveImage} 
-                    disabled={isSaving}
-                    className="w-full text-[#0f172a] bg-retro-accent flex items-center justify-center gap-3 text-lg shadow-glow"
-                >
-                   {isSaving ? '...' : t.share_save}
+                <RetroButton onClick={handleSaveImage} disabled={isSaving} className="w-full text-[#0f172a] bg-retro-accent flex items-center justify-center gap-3 text-lg shadow-glow">
+                   {isSaving ? 'Saving...' : t.share_save}
                 </RetroButton>
                 <button onClick={() => setShowShareCard(false)} className="text-retro-mute font-black text-xs uppercase tracking-widest hover:text-white transition-all py-4">
                    {t.share_back}
@@ -433,22 +411,26 @@ const BrewTimer: React.FC<BrewTimerProps> = ({ recipe, onReset, language }) => {
         </div>
       )}
 
-      {/* Persistent Controls */}
+      {/* Floating Action Buttons (Only in Timer View) */}
       {!showShareCard && (
-        <div className="fixed bottom-8 left-0 right-0 px-6 z-40 max-w-lg mx-auto flex gap-4">
-            <RetroButton 
-                onClick={() => setShowShareCard(true)} 
-                className="flex-1 bg-white text-[#0f172a] hover:bg-slate-200 border-none shadow-2xl"
+        <div className="fixed bottom-8 left-0 right-0 px-6 z-50 max-w-lg mx-auto flex gap-4">
+            {/* Play Button - Main Action */}
+            <button 
+                onClick={toggleTimer}
+                className={`flex-1 h-16 rounded-full flex items-center justify-center font-black text-lg uppercase tracking-widest shadow-2xl transition-all ${isActive ? 'bg-retro-surface text-white border border-white/20' : 'bg-retro-accent text-[#0f172a] shadow-glow scale-105'}`}
             >
-                🗃️ {t.timer_share}
-            </RetroButton>
-            <RetroButton 
-                onClick={onReset} 
-                variant="outline" 
-                className="bg-black/50 backdrop-blur-md text-white border-white/20 px-8"
-            >
-                {t.timer_reset}
-            </RetroButton>
+                {isFinished ? t.timer_done : isActive ? t.timer_pause : seconds > 0 ? t.timer_resume : t.timer_start}
+            </button>
+            
+            {/* Secondary Actions */}
+            <div className="flex gap-2">
+                <button onClick={() => setShowShareCard(true)} className="h-16 w-16 rounded-full bg-white text-[#0f172a] flex items-center justify-center text-xl shadow-lg hover:scale-105 transition-transform">
+                    🗃️
+                </button>
+                <button onClick={onReset} className="h-16 w-16 rounded-full bg-black/60 backdrop-blur text-white border border-white/20 flex items-center justify-center text-xl hover:scale-105 transition-transform">
+                    ↺
+                </button>
+            </div>
         </div>
       )}
     </div>
