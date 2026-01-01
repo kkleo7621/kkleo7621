@@ -31,13 +31,16 @@ export interface CoffeeParams {
   calculationMode: CalculationMode;
   brewer: string;
   brewerCustom: string;
-  grinder: string; // New field for Grinder
+  grinder: string;
   flavorPreference: string;
   notePreference: string;
   roastDate: string;
   weather: string;
+  envTemp?: number; // Real-time Temperature
+  envHumidity?: number; // Real-time Humidity
   structure: string;
   championMethod: string;
+  isChampionMode: boolean;
 }
 
 export interface RecipeStep {

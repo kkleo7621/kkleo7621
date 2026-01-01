@@ -13,6 +13,8 @@ const App: React.FC = () => {
   const options = useMemo(() => GET_OPTIONS(language), [language]);
   const t = TRANSLATIONS[language];
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const [params, setParams] = useState<CoffeeParams>({
     origin: options.origins[0],
     process: options.process[0],
@@ -22,13 +24,16 @@ const App: React.FC = () => {
     calculationMode: CalculationMode.BY_DOSE, 
     structure: options.structure[0],
     championMethod: options.methods[0],
+    isChampionMode: true, // Default ON
     brewer: options.brewers[0],
     brewerCustom: '',
     grinder: options.grinders[0], // Default grinder
     flavorPreference: options.flavor[1], // Balanced
     notePreference: options.notes[1], // Balanced
-    roastDate: new Date().toISOString().split('T')[0],
+    roastDate: todayStr,
     weather: options.weather[4], // Normal
+    envTemp: undefined,
+    envHumidity: undefined
   });
 
   const [recipe, setRecipe] = useState<CoffeeRecipe | null>(null);
@@ -36,10 +41,9 @@ const App: React.FC = () => {
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'form' | 'timer'>('form');
+  const [weatherLoading, setWeatherLoading] = useState(false);
 
-  // Sync params dropdown options when language changes (keeps value if it matches, otherwise resets to first)
-  // We won't force reset everything to avoid user annoyance, but we will ensure lists are fresh.
-  
+  // Sync params dropdown options when language changes
   useEffect(() => {
     let interval: number;
     if (loading) {
@@ -68,7 +72,74 @@ const App: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setParams(prev => ({ ...prev, [name]: value }));
+    // If user manually changes weather, clear the auto-detected sensor data
+    if (name === 'weather') {
+        setParams(prev => ({ ...prev, [name]: value, envTemp: undefined, envHumidity: undefined }));
+    } else {
+        setParams(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const toggleChampionMode = () => {
+    setParams(prev => ({ ...prev, isChampionMode: !prev.isChampionMode }));
+  };
+
+  const handleAutoWeather = () => {
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+    }
+    setWeatherLoading(true);
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m`);
+                const data = await response.json();
+                
+                if (data.current) {
+                    const temp = data.current.temperature_2m;
+                    const humidity = data.current.relative_humidity_2m;
+                    
+                    // Logic to map API data to existing Weather Options
+                    // Indices in options.weather:
+                    // 0: Sunny/Dry, 1: Rainy/Humid, 2: Cold, 3: Hot, 4: Normal
+                    
+                    let selectedWeatherIndex = 4; // Default Normal
+
+                    if (humidity > 70) {
+                        selectedWeatherIndex = 1; // Humid
+                    } else if (temp > 28) {
+                        selectedWeatherIndex = 3; // Hot
+                    } else if (temp < 15) {
+                        selectedWeatherIndex = 2; // Cold
+                    } else if (humidity < 40) {
+                        selectedWeatherIndex = 0; // Dry
+                    } else {
+                        selectedWeatherIndex = 4; // Comfortable
+                    }
+
+                    // Update params with precise data
+                    setParams(prev => ({ 
+                        ...prev, 
+                        weather: options.weather[selectedWeatherIndex],
+                        envTemp: temp,
+                        envHumidity: humidity
+                    }));
+                }
+            } catch (err) {
+                console.error("Weather fetch failed", err);
+                alert("Failed to fetch weather data.");
+            } finally {
+                setWeatherLoading(false);
+            }
+        },
+        (err) => {
+            console.error(err);
+            setWeatherLoading(false);
+            alert("Location access denied. Please select weather manually.");
+        }
+    );
   };
 
   return (
@@ -147,22 +218,44 @@ const App: React.FC = () => {
             </RetroCard>
 
             <RetroCard className="!p-8">
-                <div className="mb-8 flex items-center gap-4">
-                    <div className="w-1.5 h-8 bg-retro-secondary rounded-full"></div>
-                    <h2 className="font-serif font-black text-2xl text-white">{t.section_method}</h2>
-                </div>
-                
-                {/* Champion Method Selector */}
-                <div className="mb-6 p-1 bg-gradient-to-r from-retro-accent/20 to-transparent rounded-2xl border border-retro-accent/20">
-                    <div className="bg-[#0f172a]/80 backdrop-blur rounded-xl p-2">
-                       <RetroSelect label={t.label_method} name="championMethod" value={params.championMethod} onChange={handleInputChange} options={options.methods} />
-                       <p className="text-[10px] text-retro-mute px-2 -mt-2 mb-2 leading-relaxed">
-                          {params.championMethod.includes("AI") || params.championMethod.includes("Auto") || params.championMethod.includes("智能")
-                            ? t.method_hint_auto
-                            : t.method_hint_lock}
-                       </p>
+                <div className="mb-8 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-1.5 h-8 bg-retro-secondary rounded-full"></div>
+                        <h2 className="font-serif font-black text-2xl text-white">{t.section_method}</h2>
                     </div>
                 </div>
+
+                {/* Champion Mode Toggle */}
+                <div className="mb-6 flex items-center justify-between bg-[#0f172a] p-4 rounded-2xl border border-retro-border">
+                    <span className="font-serif font-bold text-retro-mute text-sm">{t.label_champ_switch}</span>
+                    <button 
+                        onClick={toggleChampionMode}
+                        className={`relative w-14 h-8 rounded-full transition-all duration-300 ${params.isChampionMode ? 'bg-retro-accent' : 'bg-slate-700'}`}
+                    >
+                        <div className={`absolute top-1 left-1 bg-white w-6 h-6 rounded-full shadow-md transition-transform duration-300 ${params.isChampionMode ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                    </button>
+                </div>
+                
+                {/* Conditional Rendering of Method Selector */}
+                <div className={`transition-all duration-500 overflow-hidden ${params.isChampionMode ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="mb-6 p-1 bg-gradient-to-r from-retro-accent/20 to-transparent rounded-2xl border border-retro-accent/20">
+                        <div className="bg-[#0f172a]/80 backdrop-blur rounded-xl p-2">
+                           <RetroSelect label={t.label_method} name="championMethod" value={params.championMethod} onChange={handleInputChange} options={options.methods} />
+                           <p className="text-[10px] text-retro-mute px-2 -mt-2 mb-2 leading-relaxed">
+                              {params.championMethod.includes("AI") || params.championMethod.includes("Auto") || params.championMethod.includes("智能")
+                                ? t.method_hint_auto
+                                : t.method_hint_lock}
+                           </p>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Standard Mode Message */}
+                {!params.isChampionMode && (
+                    <div className="mb-6 p-4 bg-slate-800/50 rounded-2xl border border-white/5 text-center animate-fade-in">
+                        <p className="text-xs text-retro-mute leading-relaxed">{t.method_hint_standard}</p>
+                    </div>
+                )}
 
                 <div className="mb-8">
                      <RetroSelect label={t.label_structure} name="structure" value={params.structure} onChange={handleInputChange} options={options.structure} />
@@ -186,10 +279,42 @@ const App: React.FC = () => {
                     <div className="w-1.5 h-8 bg-blue-500 rounded-full"></div>
                     <h2 className="font-serif font-black text-2xl text-white">{t.section_env}</h2>
                 </div>
-                <div className="grid grid-cols-2 gap-6 mb-8">
-                    <RetroInput type="date" label={t.label_roast_date} name="roastDate" value={params.roastDate} onChange={handleInputChange} style={{ colorScheme: 'dark' }} />
-                    <RetroSelect label={t.label_weather} name="weather" value={params.weather} onChange={handleInputChange} options={options.weather} />
+                
+                {/* Date & Weather Row */}
+                <div className="mb-8">
+                    <div className="grid grid-cols-2 gap-6 mb-2">
+                        <RetroInput 
+                            type="date" 
+                            label={t.label_roast_date} 
+                            name="roastDate" 
+                            value={params.roastDate} 
+                            max={todayStr} 
+                            onChange={handleInputChange} 
+                            style={{ colorScheme: 'dark' }} 
+                        />
+                        <div>
+                             <RetroSelect label={t.label_weather} name="weather" value={params.weather} onChange={handleInputChange} options={options.weather} />
+                        </div>
+                    </div>
+                    {/* Auto Detect Button & Display */}
+                    <div className="flex justify-end items-center gap-4 -mt-3">
+                         {params.envTemp !== undefined && params.envHumidity !== undefined && (
+                            <div className="flex gap-3 text-[10px] font-mono font-bold text-retro-secondary bg-retro-secondary/10 px-2 py-1.5 rounded border border-retro-secondary/20 animate-fade-in shadow-[0_0_10px_-3px_rgba(52,211,153,0.3)]">
+                                <span className="flex items-center gap-1">🌡️ {params.envTemp}°C</span>
+                                <span className="w-[1px] h-3 bg-retro-secondary/30"></span>
+                                <span className="flex items-center gap-1">💧 {params.envHumidity}%</span>
+                            </div>
+                         )}
+                         <button 
+                            onClick={handleAutoWeather}
+                            disabled={weatherLoading}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700/50 hover:bg-retro-accent hover:text-[#0f172a] text-[10px] font-black uppercase tracking-widest text-retro-mute rounded-lg transition-all border border-white/10"
+                         >
+                            {weatherLoading ? 'Detecting...' : t.btn_auto_weather}
+                         </button>
+                    </div>
                 </div>
+
                 <div className="grid grid-cols-2 gap-6">
                     <RetroSelect label={t.label_flavor} name="flavorPreference" value={params.flavorPreference} onChange={handleInputChange} options={options.flavor} />
                     <RetroSelect label={t.label_note} name="notePreference" value={params.notePreference} onChange={handleInputChange} options={options.notes} />

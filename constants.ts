@@ -7,21 +7,26 @@ export const TRANSLATIONS = {
     subtitle: '專業手沖咖啡助手',
     loading: [
       "解析產區風土 (Terroir)...",
-      "模擬 2025 George Peng 變溫萃取...",
+      "回溯 2016 Tetsu Kasuya 4:6 數據...",
+      "計算 CO2 悶蒸排氣速率 (Degassing)...",
+      "模擬 2019 Du Jianing 精準注水...",
       "計算 2017 Chad Wang 冷陶瓷參數...",
-      "應用 2016 Tetsu Kasuya 4:6 法則...",
-      "優化 2022 Sherry 混合研磨比例...",
-      "平衡 2023 Carlos 多相品飲結構..."
+      "應用 2024 Martin Wölfl 零擾動理論...",
+      "優化 2023 Carlos Medina 變溫結構..."
     ],
     section_origin: '產區與豆況',
-    section_method: '冠軍模組與參數',
-    section_env: '環境與職人偏好',
+    section_method: '萃取理論模型',
+    section_env: '環境與感官目標',
     label_origin: '咖啡產區',
     label_process: '處理法',
     label_roast: '烘焙度',
     label_method: '冠軍手法模組 (核心)',
-    method_hint_auto: '✨ AI 將根據您的豆況與天氣，自動媒合最適合的冠軍邏輯。',
+    label_champ_switch: '啟用 WBrC 冠軍資料庫',
+    label_champ_on: 'ON',
+    label_champ_off: 'OFF',
+    method_hint_auto: '✨ AI 將分析您的豆況，從 2014-2025 歷屆冠軍資料庫中，媒合最適合的萃取邏輯。',
     method_hint_lock: '🔒 已鎖定特定冠軍手法。AI 將維持該手法的核心架構，但會協助微調研磨度與水溫以適應豆況。',
+    method_hint_standard: '⚖️ 使用 SCA 標準金杯萃取邏輯。不套用特殊流派，專注於物理萃取的均勻度與平衡性。',
     label_structure: '沖煮比例傾向',
     btn_dose: '鎖定粉重',
     btn_volume: '鎖定液量',
@@ -29,8 +34,9 @@ export const TRANSLATIONS = {
     label_volume: '液量 (Volume)',
     label_roast_date: '烘焙日期',
     label_weather: '目前天氣',
-    label_flavor: '風味傾向',
-    label_note: '口感重心',
+    btn_auto_weather: '📍 自動偵測', // New
+    label_flavor: '風味光譜 (Flavor)',
+    label_note: '口感光譜 (Body/Mouthfeel)',
     label_brewer: '濾杯 (Dripper)',
     label_grinder: '磨豆機 (Grinder)',
     label_custom_brewer: '自定義濾杯',
@@ -48,12 +54,12 @@ export const TRANSLATIONS = {
     timer_total: 'Total Water',
     timer_ratio: 'Ratio',
     timer_grind: 'Recommended Grind Setting',
-    timer_analysis: '職人變因分析報告',
-    timer_champ: '冠軍手法融合說明',
+    timer_analysis: '冠軍媒合分析報告',
+    timer_champ: '採用萃取理論',
     timer_steps: '沖煮流程詳解',
     timer_share: '生成分享卡',
     timer_reset: '重設',
-    share_title: '職人分享卡 (2014-2025 WBrC)',
+    share_title: 'Barista Log (WBrC)',
     share_subtitle: '點擊下方按鈕將配方導出為專業影像',
     share_save: '📥 另存圖片到相簿',
     share_back: '← 返回計時器介面',
@@ -64,21 +70,26 @@ export const TRANSLATIONS = {
     subtitle: 'Professional Pour-Over Assistant',
     loading: [
       "Analyzing Terroir & Origin...",
-      "Simulating Variable Temp Extraction...",
+      "Retrieving 2016 Tetsu Data...",
+      "Calculating CO2 Degassing Rate...",
+      "Simulating 2019 Du Jianing Precision...",
       "Calculating Thermal Mass...",
-      "Applying 4:6 Method Logic...",
-      "Optimizing Hybrid Grind Size...",
-      "Balancing Sensory Structure..."
+      "Applying 2024 Martin Wölfl Logic...",
+      "Optimizing Variable Temp Structure..."
     ],
     section_origin: 'Origin & Bean Status',
-    section_method: 'Champion Module & Parameters',
-    section_env: 'Environment & Preference',
+    section_method: 'Extraction Model',
+    section_env: 'Environment & Goal',
     label_origin: 'Coffee Origin',
     label_process: 'Process Method',
     label_roast: 'Roast Level',
     label_method: 'Champion Method (Core)',
-    method_hint_auto: '✨ AI will automatically match the best champion logic based on your bean and weather.',
+    label_champ_switch: 'Enable WBrC Champion Database',
+    label_champ_on: 'ON',
+    label_champ_off: 'OFF',
+    method_hint_auto: '✨ AI will match the best champion logic from the 2014-2025 database based on your bean.',
     method_hint_lock: '🔒 Champion method locked. AI will maintain the core structure but fine-tune grind & temp.',
+    method_hint_standard: '⚖️ Using SCA Standard Gold Cup Logic. Focuses on balanced, consistent physical extraction without specific champion styles.',
     label_structure: 'Brew Ratio Structure',
     btn_dose: 'Fixed Dose',
     btn_volume: 'Target Volume',
@@ -86,8 +97,9 @@ export const TRANSLATIONS = {
     label_volume: 'Volume (ml)',
     label_roast_date: 'Roast Date',
     label_weather: 'Current Weather',
-    label_flavor: 'Flavor Goal',
-    label_note: 'Body/Note Preference',
+    btn_auto_weather: '📍 Auto Detect', // New
+    label_flavor: 'Flavor Spectrum',
+    label_note: 'Body/Mouthfeel',
     label_brewer: 'Brewer (Dripper)',
     label_grinder: 'Grinder',
     label_custom_brewer: 'Custom Brewer',
@@ -105,8 +117,8 @@ export const TRANSLATIONS = {
     timer_total: 'Total Water',
     timer_ratio: 'Ratio',
     timer_grind: 'Recommended Grind Setting',
-    timer_analysis: 'Master Variable Analysis',
-    timer_champ: 'Champion Inspiration',
+    timer_analysis: 'Champion Match Analysis',
+    timer_champ: 'Extraction Theory',
     timer_steps: 'Brewing Steps',
     timer_share: 'Create Share Card',
     timer_reset: 'Reset',
@@ -121,21 +133,26 @@ export const TRANSLATIONS = {
     subtitle: 'プロフェッショナル・ハンドドリップ・アシスタント',
     loading: [
       "テロワール分析中...",
-      "可変温度抽出をシミュレーション中...",
+      "2016 粕谷哲 4:6メソッド検索中...",
+      "CO2 ガス放出率を計算中...",
+      "2019 杜嘉寧 精密抽出シミュレーション...",
       "熱容量計算中...",
-      "4:6メソッド適用中...",
-      "挽き目分布を最適化中...",
-      "官能構造バランス調整中..."
+      "2024 Martin Wölfl 静音抽出適用中...",
+      "可変温度構造を最適化中..."
     ],
     section_origin: '産地と豆の状態',
-    section_method: 'チャンピオンメソッド',
-    section_env: '環境と好み',
+    section_method: '抽出理論モデル',
+    section_env: '環境とターゲット',
     label_origin: 'コーヒー産地',
     label_process: '精製方法',
     label_roast: '焙煎度',
     label_method: '抽出理論 (コア)',
-    method_hint_auto: '✨ AIが豆の状態と天候に基づいて、最適なチャンピオン理論を自動選択します。',
+    label_champ_switch: 'WBrC チャンピオンDBを有効化',
+    label_champ_on: 'ON',
+    label_champ_off: 'OFF',
+    method_hint_auto: '✨ AIが豆の状態に基づき、2014-2025年の歴代チャンピオンから最適な理論を自動選択します。',
     method_hint_lock: '🔒 メソッド固定モード。AIは構造を維持しつつ、挽き目と湯温を微調整します。',
+    method_hint_standard: '⚖️ SCA標準ゴールドカップ理論を使用。特定の流派に偏らず、物理的な抽出効率とバランスを重視します。',
     label_structure: '抽出比率の傾向',
     btn_dose: '粉量固定',
     btn_volume: '抽出量固定',
@@ -143,8 +160,9 @@ export const TRANSLATIONS = {
     label_volume: '抽出量 (ml)',
     label_roast_date: '焙煎日',
     label_weather: '現在の天気',
-    label_flavor: 'フレーバー傾向',
-    label_note: '質感・ボディ',
+    btn_auto_weather: '📍 自動検出', // New
+    label_flavor: 'フレーバー (酸味/甘み)',
+    label_note: 'ボディ (質感)',
     label_brewer: 'ドリッパー選択',
     label_grinder: 'グラインダー (ミル)',
     label_custom_brewer: 'カスタムドリッパー',
@@ -162,8 +180,8 @@ export const TRANSLATIONS = {
     timer_total: 'Total Water',
     timer_ratio: 'Ratio',
     timer_grind: 'Recommended Grind Setting',
-    timer_analysis: '変数分析レポート',
-    timer_champ: '採用されたチャンピオン理論',
+    timer_analysis: 'チャンピオン選定分析',
+    timer_champ: '採用された理論',
     timer_steps: '抽出ステップ詳細',
     timer_share: 'シェアカード作成',
     timer_reset: 'リセット',
@@ -253,6 +271,20 @@ export const GET_OPTIONS = (lang: Language) => {
   const isEn = lang === 'en';
   const isJa = lang === 'ja';
 
+  const wbrc_methods = [
+    { name_en: "🤖 AI Auto Match (2014-2025)", name_ja: "🤖 AI オートマッチ (2014-2025)", name_zh: "🤖 AI 智能媒合 (歷屆冠軍資料庫)" },
+    { name_en: "2024 Martin Wölfl (Melodrip/Bypass)", name_ja: "2024 Martin Wölfl (Melodrip/加水)", name_zh: "2024 Martin Wölfl (Melodrip/零擾動)" },
+    { name_en: "2023 Carlos Medina (Tropical/Origami)", name_ja: "2023 Carlos Medina (トロピカル/Origami)", name_zh: "2023 Carlos Medina (熱帶發酵/Origami)" },
+    { name_en: "2022 Sherry Hsu (Hybrid Grind)", name_ja: "2022 Sherry Hsu (ハイブリッド挽き目)", name_zh: "2022 Sherry Hsu (混合研磨/降溫)" },
+    { name_en: "2021 Matt Winton (5-Pour/Big Bloom)", name_ja: "2021 Matt Winton (5投/蒸らし多め)", name_zh: "2021 Matt Winton (五段式/大悶蒸)" },
+    { name_en: "2019 Du Jianing (Precision/High Flow)", name_ja: "2019 Du Jianing (超精密/高流速)", name_zh: "2019 Du Jianing (極致勻萃/高流速)" },
+    { name_en: "2018 Emi Fukahori (Variable Temp)", name_ja: "2018 Emi Fukahori (可変温度)", name_zh: "2018 Emi Fukahori (多溫變奏/浸泡)" },
+    { name_en: "2017 Chad Wang (Ceramic/Center Pour)", name_ja: "2017 Chad Wang (陶器/センタープア)", name_zh: "2017 Chad Wang (陶瓷濾杯/中心注水)" },
+    { name_en: "2016 Tetsu Kasuya (4:6 Method)", name_ja: "2016 粕谷哲 (4:6メソッド)", name_zh: "2016 Tetsu Kasuya (4:6 法/酸甜可調)" },
+    { name_en: "2015 Odd-Steinar (Natural Process Focus)", name_ja: "2015 Odd-Steinar (ナチュラル重視)", name_zh: "2015 Odd-Steinar (日曬豆專門/V60)" },
+    { name_en: "2014 Stefanos Domatiotis (Structure)", name_ja: "2014 Stefanos Domatiotis (構造重視)", name_zh: "2014 Stefanos Domatiotis (經典架構)" }
+  ];
+
   return {
     origins: isEn ? [
       "Ethiopia Yirgacheffe", "Ethiopia Sidamo", "Ethiopia Guji", "Kenya", "Colombia", "Brazil", "Guatemala", "Costa Rica", "Panama Geisha", "Indonesia Mandheling", "El Salvador", "Honduras", "Taiwan Alishan", "Vietnam", "Other (Custom)"
@@ -275,33 +307,29 @@ export const GET_OPTIONS = (lang: Language) => {
     ] : [
       "淺焙", "淺中焙", "中焙", "中深焙", "深焙"
     ],
-    methods: isEn ? [
-      "🤖 AI Auto Match", "Tetsu Kasuya (4:6 Method)", "Chad Wang (Center Pour)", "Matt Winton (5-Pour / Big Bloom)", "Emi Fukahori (Variable Temp)", "Sherry Hsu (Hybrid Grind)", "Martin Wölfl (Melodrip / No Bypass)"
-    ] : isJa ? [
-      "🤖 AI オートマッチ", "Tetsu Kasuya (4:6メソッド)", "Chad Wang (センタープア)", "Matt Winton (5投 / 蒸らし多め)", "Emi Fukahori (可変温度)", "Sherry Hsu (ハイブリッド挽き目)", "Martin Wölfl (Melodrip / 静音抽出)"
-    ] : [
-      "🤖 AI 智能媒合 (推薦)", "Tetsu Kasuya (4:6 法 / 酸甜可調)", "Chad Wang (陶瓷濾杯 / 中心注水)", "Matt Winton (五段式 / 大悶蒸)", "Emi Fukahori (多溫變奏)", "Sherry Hsu (混合研磨)", "Martin Wölfl (Melodrip 零擾動)"
-    ],
+    methods: wbrc_methods.map(m => isEn ? m.name_en : isJa ? m.name_ja : m.name_zh),
     weather: isEn ? [
-      "Sunny / Dry", "Rainy / Humid", "Cold", "Hot", "Normal / Controlled"
+      "Sunny / Dry", "Rainy / Humid", "Cold", "Hot", "Comfortable / Normal"
     ] : isJa ? [
-      "晴れ / 乾燥", "雨 / 高湿度", "寒い", "暑い", "快適 / 空調あり"
+      "晴れ / 乾燥", "雨 / 高湿度", "寒い", "暑い", "快適 / 普通"
     ] : [
       "晴朗乾燥 (低濕度)", "陰雨潮濕 (高濕度)", "寒流低溫 (失溫快)", "炎熱高溫", "舒適恆溫"
     ],
+    // UPDATED FLAVOR OPTIONS
     flavor: isEn ? [
-      "Acidity Focused", "Balanced", "Sweetness Focused"
+      "Highlight Acidity", "Balanced", "Maximize Sweetness"
     ] : isJa ? [
-      "酸味重視", "バランス", "甘み重視"
+      "酸味を強調 (Acidity)", "バランス (Balanced)", "甘みを最大化 (Sweetness)"
     ] : [
-      "強調明亮酸值", "酸甜平衡", "強調厚實甜感"
+      "強調明亮酸質 (Acidity)", "酸甜平衡 (Balanced)", "飽滿甜感 (Sweetness)"
     ],
+    // UPDATED BODY OPTIONS
     notes: isEn ? [
-      "Floral / Tea-like", "Balanced Structure", "Rich Body"
+      "Tea-like / Clean", "Medium Body", "Rich / Heavy Body"
     ] : isJa ? [
-      "フローラル / ティーライク", "バランス重視", "リッチ / ボディ感"
+      "お茶のような質感 (Watery)", "ミディアムボディ", "厚みのある質感 (Heavy)"
     ] : [
-      "前段花香 / 小分子", "層次均衡", "後段醇厚 / 大分子"
+      "清爽水感 (Tea-like)", "層次適中 (Medium)", "厚實口感 (Heavy)"
     ],
     structure: isEn ? [
       "Standard (1:15)", "Rich / Strong (1:10-1:13)", "Tea-like (1:17+)", "Bypass (Dilution)"
